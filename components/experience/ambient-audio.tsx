@@ -1,17 +1,22 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Volume2, VolumeX, Wind } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useExperienceStore } from "@/store/experience-store";
 
-function createAmbientNoise(ctx: AudioContext) {
+type AmbientHandle = {
+  source: AudioBufferSourceNode;
+  ctx: AudioContext;
+};
+
+function startAmbient(ctx: AudioContext): AmbientHandle {
   const bufferSize = 2 * ctx.sampleRate;
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const data = buffer.getChannelData(0);
-
   for (let i = 0; i < bufferSize; i++) {
-    data[i] = (Math.random() * 2 - 1) * 0.35;
+    data[i] = (Math.random() * 2 - 1) * 0.4;
   }
 
   const source = ctx.createBufferSource();
@@ -20,107 +25,99 @@ function createAmbientNoise(ctx: AudioContext) {
 
   const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.value = 420;
-  filter.Q.value = 0.7;
+  filter.frequency.value = 520;
+  filter.Q.value = 0.65;
 
   const gain = ctx.createGain();
-  gain.gain.value = 0.035;
+  gain.gain.value = 0.12;
 
   source.connect(filter);
   filter.connect(gain);
   gain.connect(ctx.destination);
   source.start();
 
-  return { source, gain, ctx };
+  return { source, ctx };
 }
 
 export function AmbientAudio({ musicUrl }: { musicUrl?: string }) {
-  const {
-    ambientEnabled,
-    audioEnabled,
-    setAmbientEnabled,
-    setAudioEnabled,
-  } = useExperienceStore();
-
-  const ambientRef = useRef<ReturnType<typeof createAmbientNoise> | null>(null);
+  const { audioEnabled, setAudioEnabled } = useExperienceStore();
+  const ambientRef = useRef<AmbientHandle | null>(null);
   const musicRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopAll = async () => {
+    if (musicRef.current) {
+      musicRef.current.pause();
+      musicRef.current = null;
+    }
+    if (ambientRef.current) {
+      try {
+        ambientRef.current.source.stop();
+        await ambientRef.current.ctx.close();
+      } catch {
+        /* already closed */
+      }
+      ambientRef.current = null;
+    }
+  };
 
   useEffect(() => {
     return () => {
-      ambientRef.current?.source.stop();
-      ambientRef.current?.ctx.close();
-      ambientRef.current = null;
-      if (musicRef.current) {
-        musicRef.current.pause();
-        musicRef.current = null;
-      }
+      void stopAll();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const toggleAmbient = async () => {
-      if (ambientEnabled) {
-        if (!ambientRef.current) {
-          const ctx = new AudioContext();
-          ambientRef.current = createAmbientNoise(ctx);
-        } else if (ambientRef.current.ctx.state === "suspended") {
-          await ambientRef.current.ctx.resume();
-        }
-      } else if (ambientRef.current) {
-        ambientRef.current.source.stop();
-        await ambientRef.current.ctx.close();
-        ambientRef.current = null;
-      }
-    };
-
-    void toggleAmbient();
-  }, [ambientEnabled]);
-
-  useEffect(() => {
-    if (!musicUrl) return;
-
+  const toggleSound = async () => {
     if (audioEnabled) {
-      if (!musicRef.current) {
-        musicRef.current = new Audio(musicUrl);
-        musicRef.current.loop = true;
-        musicRef.current.volume = 0.35;
-      }
-      void musicRef.current.play().catch(() => setAudioEnabled(false));
-    } else if (musicRef.current) {
-      musicRef.current.pause();
+      await stopAll();
+      setAudioEnabled(false);
+      return;
     }
-  }, [audioEnabled, musicUrl, setAudioEnabled]);
+
+    try {
+      if (musicUrl) {
+        const audio = new Audio(musicUrl);
+        audio.loop = true;
+        audio.volume = 0.4;
+        musicRef.current = audio;
+        await audio.play();
+      } else {
+        const ctx = new AudioContext();
+        if (ctx.state === "suspended") {
+          await ctx.resume();
+        }
+        ambientRef.current = startAmbient(ctx);
+      }
+      setAudioEnabled(true);
+    } catch {
+      await stopAll();
+      setAudioEnabled(false);
+    }
+  };
 
   return (
-    <div className="fixed bottom-[5.8rem] right-3 z-[56] flex gap-2 md:bottom-5 md:right-5 md:z-[70]">
+    <div className="fixed bottom-[5.8rem] right-3 z-[56] md:bottom-5 md:right-5 md:z-[70]">
       <Button
         type="button"
         variant="outline"
         size="icon"
-        aria-pressed={ambientEnabled}
-        aria-label={ambientEnabled ? "Desactivar ambiente de campo" : "Activar ambiente de campo"}
-        className="border-ocre/40 bg-marfil/80 backdrop-blur"
-        onClick={() => setAmbientEnabled(!ambientEnabled)}
+        aria-pressed={audioEnabled}
+        aria-label={audioEnabled ? "Silenciar" : "Activar sonido"}
+        title={audioEnabled ? "Silenciar" : "Activar sonido"}
+        className={cn(
+          "h-11 w-11 border-ocre/50 shadow-[0_8px_24px_rgba(26,23,51,0.12)] backdrop-blur transition-colors",
+          audioEnabled
+            ? "bg-noche text-marfil hover:bg-noche-deep"
+            : "bg-marfil/90 text-noche hover:bg-marfil"
+        )}
+        onClick={() => void toggleSound()}
       >
-        <Wind className="h-4 w-4 text-noche" />
+        {audioEnabled ? (
+          <Volume2 className="h-5 w-5" aria-hidden />
+        ) : (
+          <VolumeX className="h-5 w-5" aria-hidden />
+        )}
       </Button>
-      {musicUrl ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          aria-pressed={audioEnabled}
-          aria-label={audioEnabled ? "Silenciar música" : "Activar música"}
-          className="border-ocre/40 bg-marfil/80 backdrop-blur"
-          onClick={() => setAudioEnabled(!audioEnabled)}
-        >
-          {audioEnabled ? (
-            <Volume2 className="h-4 w-4 text-noche" />
-          ) : (
-            <VolumeX className="h-4 w-4 text-noche" />
-          )}
-        </Button>
-      ) : null}
     </div>
   );
 }
