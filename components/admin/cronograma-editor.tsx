@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { Timeline } from "@/components/invitation/timeline";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ function createEvent(): CronogramaEvento {
 export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
   const [config, setConfig] = useState(initialConfig);
   const [saving, setSaving] = useState(false);
+  const events = Array.isArray(config.cronograma) ? config.cronograma : [];
 
   const update = <K extends keyof SiteConfig>(key: K, value: SiteConfig[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -41,7 +43,8 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
 
   const updateItem = (index: number, key: keyof CronogramaEvento, value: string) => {
     setConfig((prev) => {
-      const next = [...prev.cronograma];
+      const list = Array.isArray(prev.cronograma) ? prev.cronograma : [];
+      const next = [...list];
       next[index] = { ...next[index], [key]: value } as CronogramaEvento;
       return { ...prev, cronograma: next };
     });
@@ -50,14 +53,16 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
   const addItem = () => {
     setConfig((prev) => ({
       ...prev,
-      cronograma: [...prev.cronograma, createEvent()],
+      cronograma: [...(Array.isArray(prev.cronograma) ? prev.cronograma : []), createEvent()],
     }));
   };
 
   const removeItem = (index: number) => {
     setConfig((prev) => ({
       ...prev,
-      cronograma: prev.cronograma.filter((_, i) => i !== index),
+      cronograma: (Array.isArray(prev.cronograma) ? prev.cronograma : []).filter(
+        (_, i) => i !== index
+      ),
     }));
   };
 
@@ -105,18 +110,14 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="cronograma_fondo_url">Imagen de fondo</Label>
-          <Input
-            id="cronograma_fondo_url"
-            value={config.cronograma_fondo_url}
-            placeholder="/images/gallery-gauchos.png o https://..."
-            onChange={(e) => update("cronograma_fondo_url", e.target.value)}
-          />
-          <p className="text-xs text-sepia">
-            Usá una ruta del sitio o una URL pública de imagen.
-          </p>
-        </div>
+        <ImageUploadField
+          id="cronograma_fondo_url"
+          label="Imagen de fondo"
+          hint="JPG, PNG o WEBP · máximo 3 MB"
+          folder="cronograma"
+          value={config.cronograma_fondo_url || ""}
+          onChange={(url) => update("cronograma_fondo_url", url)}
+        />
 
         <div className="space-y-2">
           <Label htmlFor="cronograma_overlay">
@@ -167,7 +168,12 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
       </div>
 
       <div className="space-y-4">
-        {config.cronograma.map((item, index) => (
+        {events.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-ocre/30 bg-white px-5 py-10 text-center text-sm text-sepia">
+            Todavía no hay actividades. Agregá una y guardá.
+          </p>
+        ) : null}
+        {events.map((item, index) => (
           <div
             key={item.id || index}
             className="rounded-2xl border border-ocre/20 bg-white p-5 shadow-sm"

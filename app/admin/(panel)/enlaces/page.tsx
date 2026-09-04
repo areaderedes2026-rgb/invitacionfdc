@@ -1,46 +1,9 @@
-import { JsonListEditor } from "@/components/admin/json-list-editor";
+import { EnlacesEditor } from "@/components/admin/enlaces-editor";
 import { getSiteConfig } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminEnlacesPage() {
   const config = await getSiteConfig();
-
-  return (
-    <div className="space-y-8">
-      <JsonListEditor
-        initialConfig={config}
-        listKey="enlaces"
-        title="Enlaces especiales"
-        description="Cada slug genera una ruta /invitacion/[slug] con tracking de acceso."
-        createItem={() => ({
-          id: crypto.randomUUID(),
-          slug: "nuevo-enlace",
-          etiqueta: "Nueva etiqueta",
-          descripcion: "Descripción del enlace protocolar",
-          activo: true,
-        })}
-        fields={[
-          { key: "slug", label: "Slug (sin espacios)" },
-          { key: "etiqueta", label: "Etiqueta" },
-          { key: "descripcion", label: "Descripción", type: "textarea" },
-          { key: "activo", label: "Visible en tracking", type: "checkbox" },
-        ]}
-      />
-
-      <div className="rounded-2xl border border-ocre/20 bg-white p-5 text-sm text-sepia shadow-sm">
-        <p className="font-medium text-ink">Ejemplos activos:</p>
-        <ul className="mt-3 list-disc space-y-1 pl-5">
-          {config.enlaces.map((link) => (
-            <li key={link.id}>
-              <a className="text-wine underline" href={`/invitacion/${link.slug}`}>
-                /invitacion/{link.slug}
-              </a>{" "}
-              — {link.etiqueta}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
+  return <EnlacesEditor initialConfig={config} />;
 }

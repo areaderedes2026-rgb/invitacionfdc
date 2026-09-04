@@ -6,6 +6,7 @@ import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import type { SiteConfig } from "@/types";
 
 function youtubeEmbed(url: string) {
@@ -21,10 +22,8 @@ function youtubeEmbed(url: string) {
 export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
   const [config, setConfig] = useState(initialConfig);
   const [saving, setSaving] = useState(false);
-  const [logoBroken, setLogoBroken] = useState(false);
 
   const update = (key: "musica_url" | "video_url" | "logo_fiesta", value: string) => {
-    if (key === "logo_fiesta") setLogoBroken(false);
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -53,8 +52,6 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
     }
   };
 
-  const logoSrc = config.logo_fiesta.trim();
-
   return (
     <div className="space-y-8">
       <div>
@@ -77,28 +74,14 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
             Aparece en la pantalla de inicio, antes de abrir la invitación.
           </p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="logo_fiesta">Ruta o URL del logo</Label>
-          <Input
-            id="logo_fiesta"
-            value={config.logo_fiesta}
-            placeholder="/images/brand/logo-oficial.png"
-            onChange={(e) => update("logo_fiesta", e.target.value)}
-          />
-        </div>
-        {logoSrc && !logoBroken ? (
-          <div className="flex h-40 items-center justify-center rounded-xl border border-ocre/15 bg-marfil">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={logoSrc}
-              alt="Vista previa del logo"
-              className="max-h-36 max-w-[min(100%,18rem)] object-contain"
-              onError={() => setLogoBroken(true)}
-            />
-          </div>
-        ) : logoSrc ? (
-          <p className="text-sm text-noche">No se pudo cargar esa imagen. Revisá la ruta.</p>
-        ) : null}
+        <ImageUploadField
+          id="logo_fiesta"
+          label="Logo de portada"
+          hint="JPG, PNG o WEBP · máximo 3 MB"
+          folder="logo"
+          value={config.logo_fiesta || ""}
+          onChange={(url) => update("logo_fiesta", url)}
+        />
       </section>
 
       <section className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">

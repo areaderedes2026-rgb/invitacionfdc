@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
 import { EventInfo } from "@/components/invitation/event-info";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { SiteConfig } from "@/types";
 
 function datetimeValue(value: string) {
-  return value.slice(0, 16);
+  return (value || "").slice(0, 16);
 }
 
 export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
@@ -66,18 +67,14 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="evento_fondo_url">Imagen de fondo</Label>
-          <Input
-            id="evento_fondo_url"
-            value={config.evento_fondo_url}
-            placeholder="/images/gallery-caballo.png o https://..."
-            onChange={(e) => update("evento_fondo_url", e.target.value)}
-          />
-          <p className="text-xs text-sepia">
-            Usá una ruta del sitio o una URL pública de imagen.
-          </p>
-        </div>
+        <ImageUploadField
+          id="evento_fondo_url"
+          label="Imagen de fondo"
+          hint="JPG, PNG o WEBP · máximo 3 MB"
+          folder="evento"
+          value={config.evento_fondo_url || ""}
+          onChange={(url) => update("evento_fondo_url", url)}
+        />
 
         <div className="space-y-2">
           <Label htmlFor="evento_overlay">

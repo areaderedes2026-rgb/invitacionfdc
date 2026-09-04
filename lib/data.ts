@@ -32,23 +32,53 @@ async function writeJsonFile<T>(file: string, value: T) {
   await fs.writeFile(file, JSON.stringify(value, null, 2), "utf8");
 }
 
-function mapConfigRow(row: Record<string, unknown> | null): SiteConfig | null {
-  if (!row) return null;
+function asArray<T>(value: unknown, fallback: T[]): T[] {
+  return Array.isArray(value) ? (value as T[]) : fallback;
+}
+
+function asString(value: unknown, fallback: string) {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asNumber(value: unknown, fallback: number) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | null): SiteConfig {
+  const raw = (row || {}) as Record<string, unknown>;
   return {
     ...DEFAULT_CONFIG,
-    ...(row as Partial<SiteConfig>),
-    firmas: (row.firmas as SiteConfig["firmas"]) || DEFAULT_CONFIG.firmas,
-    cronograma: (row.cronograma as SiteConfig["cronograma"]) || DEFAULT_CONFIG.cronograma,
-    galeria: (row.galeria as SiteConfig["galeria"]) || DEFAULT_CONFIG.galeria,
-    enlaces: (row.enlaces as SiteConfig["enlaces"]) || DEFAULT_CONFIG.enlaces,
-    evento_overlay:
-      typeof row.evento_overlay === "number"
-        ? row.evento_overlay
-        : DEFAULT_CONFIG.evento_overlay,
-    cronograma_overlay:
-      typeof row.cronograma_overlay === "number"
-        ? row.cronograma_overlay
-        : DEFAULT_CONFIG.cronograma_overlay,
+    carta: asString(raw.carta, DEFAULT_CONFIG.carta),
+    fecha_evento: asString(raw.fecha_evento, DEFAULT_CONFIG.fecha_evento),
+    fecha_fin: asString(raw.fecha_fin, DEFAULT_CONFIG.fecha_fin),
+    horarios: asString(raw.horarios, DEFAULT_CONFIG.horarios),
+    ubicacion: asString(raw.ubicacion, DEFAULT_CONFIG.ubicacion),
+    ubicacion_detalle: asString(raw.ubicacion_detalle, DEFAULT_CONFIG.ubicacion_detalle),
+    mapa_url: asString(raw.mapa_url, DEFAULT_CONFIG.mapa_url),
+    mapa_embed: asString(raw.mapa_embed, DEFAULT_CONFIG.mapa_embed),
+    accesos: asString(raw.accesos, DEFAULT_CONFIG.accesos),
+    info_protocolar: asString(raw.info_protocolar, DEFAULT_CONFIG.info_protocolar),
+    musica_url: asString(raw.musica_url, DEFAULT_CONFIG.musica_url),
+    video_url: asString(raw.video_url, DEFAULT_CONFIG.video_url),
+    logo_fiesta: asString(raw.logo_fiesta, DEFAULT_CONFIG.logo_fiesta),
+    logo_municipalidad: asString(raw.logo_municipalidad, DEFAULT_CONFIG.logo_municipalidad),
+    logo_tucuman: asString(raw.logo_tucuman, DEFAULT_CONFIG.logo_tucuman),
+    titulo: asString(raw.titulo, DEFAULT_CONFIG.titulo),
+    subtitulo: asString(raw.subtitulo, DEFAULT_CONFIG.subtitulo),
+    bienvenida: asString(raw.bienvenida, DEFAULT_CONFIG.bienvenida),
+    evento_fondo_url: asString(raw.evento_fondo_url, DEFAULT_CONFIG.evento_fondo_url),
+    evento_overlay: asNumber(raw.evento_overlay, DEFAULT_CONFIG.evento_overlay),
+    evento_fecha_texto: asString(raw.evento_fecha_texto, DEFAULT_CONFIG.evento_fecha_texto),
+    evento_hora_texto: asString(raw.evento_hora_texto, DEFAULT_CONFIG.evento_hora_texto),
+    evento_lugar_texto: asString(raw.evento_lugar_texto, DEFAULT_CONFIG.evento_lugar_texto),
+    cronograma_fondo_url: asString(raw.cronograma_fondo_url, DEFAULT_CONFIG.cronograma_fondo_url),
+    cronograma_overlay: asNumber(raw.cronograma_overlay, DEFAULT_CONFIG.cronograma_overlay),
+    cronograma_titulo: asString(raw.cronograma_titulo, DEFAULT_CONFIG.cronograma_titulo),
+    firmas: asArray(raw.firmas, DEFAULT_CONFIG.firmas),
+    cronograma: asArray(raw.cronograma, DEFAULT_CONFIG.cronograma),
+    galeria: asArray(raw.galeria, DEFAULT_CONFIG.galeria),
+    enlaces: asArray(raw.enlaces, DEFAULT_CONFIG.enlaces),
   };
 }
 
@@ -63,60 +93,61 @@ export async function getSiteConfig(): Promise<SiteConfig> {
       .maybeSingle();
 
     if (!error && data) {
-      return mapConfigRow(data) || DEFAULT_CONFIG;
+      return normalizeConfig(data as Record<string, unknown>);
     }
   }
 
   const local = await readJsonFile<SiteConfig | null>(CONFIG_FILE, null);
-  return local ? { ...DEFAULT_CONFIG, ...local } : DEFAULT_CONFIG;
+  return normalizeConfig(local);
 }
 
 export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
+  const next = normalizeConfig(config);
   const supabase = getSupabaseServerClient();
 
   if (supabase) {
     const payload = {
       id: 1,
-      carta: config.carta,
-      fecha_evento: config.fecha_evento,
-      fecha_fin: config.fecha_fin,
-      horarios: config.horarios,
-      ubicacion: config.ubicacion,
-      ubicacion_detalle: config.ubicacion_detalle,
-      mapa_url: config.mapa_url,
-      mapa_embed: config.mapa_embed,
-      accesos: config.accesos,
-      info_protocolar: config.info_protocolar,
-      musica_url: config.musica_url,
-      video_url: config.video_url,
-      logo_fiesta: config.logo_fiesta,
-      logo_municipalidad: config.logo_municipalidad,
-      logo_tucuman: config.logo_tucuman,
-      titulo: config.titulo,
-      subtitulo: config.subtitulo,
-      bienvenida: config.bienvenida,
-      evento_fondo_url: config.evento_fondo_url,
-      evento_overlay: config.evento_overlay,
-      evento_fecha_texto: config.evento_fecha_texto,
-      evento_hora_texto: config.evento_hora_texto,
-      evento_lugar_texto: config.evento_lugar_texto,
-      cronograma_fondo_url: config.cronograma_fondo_url,
-      cronograma_overlay: config.cronograma_overlay,
-      cronograma_titulo: config.cronograma_titulo,
-      firmas: config.firmas,
-      cronograma: config.cronograma,
-      galeria: config.galeria,
-      enlaces: config.enlaces,
+      carta: next.carta,
+      fecha_evento: next.fecha_evento,
+      fecha_fin: next.fecha_fin,
+      horarios: next.horarios,
+      ubicacion: next.ubicacion,
+      ubicacion_detalle: next.ubicacion_detalle,
+      mapa_url: next.mapa_url,
+      mapa_embed: next.mapa_embed,
+      accesos: next.accesos,
+      info_protocolar: next.info_protocolar,
+      musica_url: next.musica_url,
+      video_url: next.video_url,
+      logo_fiesta: next.logo_fiesta,
+      logo_municipalidad: next.logo_municipalidad,
+      logo_tucuman: next.logo_tucuman,
+      titulo: next.titulo,
+      subtitulo: next.subtitulo,
+      bienvenida: next.bienvenida,
+      evento_fondo_url: next.evento_fondo_url,
+      evento_overlay: next.evento_overlay,
+      evento_fecha_texto: next.evento_fecha_texto,
+      evento_hora_texto: next.evento_hora_texto,
+      evento_lugar_texto: next.evento_lugar_texto,
+      cronograma_fondo_url: next.cronograma_fondo_url,
+      cronograma_overlay: next.cronograma_overlay,
+      cronograma_titulo: next.cronograma_titulo,
+      firmas: next.firmas,
+      cronograma: next.cronograma,
+      galeria: next.galeria,
+      enlaces: next.enlaces,
       updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase.from("configuracion").upsert(payload);
     if (error) throw new Error(error.message);
-    return config;
+    return next;
   }
 
-  await writeJsonFile(CONFIG_FILE, config);
-  return config;
+  await writeJsonFile(CONFIG_FILE, next);
+  return next;
 }
 
 export async function createConfirmation(payload: RsvpPayload): Promise<Confirmation> {
@@ -168,7 +199,10 @@ export async function listConfirmations(): Promise<Confirmation[]> {
       .select("*")
       .order("fecha_creacion", { ascending: false });
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("listConfirmations", error.message);
+      return [];
+    }
     return (data || []) as Confirmation[];
   }
 
@@ -211,7 +245,10 @@ export async function listAccessLogs(): Promise<AccessLog[]> {
       .order("fecha_acceso", { ascending: false })
       .limit(500);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("listAccessLogs", error.message);
+      return [];
+    }
     return (data || []) as AccessLog[];
   }
 

@@ -50,7 +50,8 @@ export function Timeline({
 
   const days = useMemo(() => {
     const map = new Map<string, typeof config.cronograma>();
-    for (const event of config.cronograma) {
+    const items = Array.isArray(config.cronograma) ? config.cronograma : [];
+    for (const event of items) {
       const key = `${event.dia}|${event.fecha}`;
       const list = map.get(key) || [];
       list.push(event);
