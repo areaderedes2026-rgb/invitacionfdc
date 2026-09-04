@@ -101,6 +101,17 @@ alter table public.configuracion add column if not exists boton_abrir text defau
 alter table public.configuracion add column if not exists carta_fuente text default 'editorial';
 alter table public.configuracion add column if not exists carta_tamano integer default 18;
 alter table public.configuracion add column if not exists carta_grosor integer default 600;
+alter table public.configuracion add column if not exists cuenta_etiqueta text default '';
+alter table public.configuracion add column if not exists cuenta_titulo text default '';
+alter table public.configuracion add column if not exists cuenta_titulo_fin text default '';
+alter table public.configuracion add column if not exists mapa_titulo text default '';
+alter table public.configuracion add column if not exists mapa_boton text default '';
+alter table public.configuracion add column if not exists video_titulo text default '';
+alter table public.configuracion add column if not exists rsvp_etiqueta text default '';
+alter table public.configuracion add column if not exists rsvp_titulo text default '';
+alter table public.configuracion add column if not exists evento_label_fecha text default '';
+alter table public.configuracion add column if not exists evento_label_hora text default '';
+alter table public.configuracion add column if not exists evento_label_lugar text default '';
 
 -- Bucket público para logos y fondos subidos desde el admin.
 insert into storage.buckets (id, name, public)

@@ -89,6 +89,11 @@ export function formatEventTime(date: string) {
   return `${time} hs`;
 }
 
+export function textOr(value: string | undefined | null, fallback: string) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
+}
+
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

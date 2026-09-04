@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, textOr } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
 export function MapSection({ config }: { config: SiteConfig }) {
@@ -32,7 +32,7 @@ export function MapSection({ config }: { config: SiteConfig }) {
           data-gsap="fade-in"
           className="font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre"
         >
-          Ubicación
+          {textOr(config.mapa_titulo, "Ubicación")}
         </p>
       </div>
 
@@ -79,7 +79,7 @@ export function MapSection({ config }: { config: SiteConfig }) {
           >
             <a href={config.mapa_url} target="_blank" rel="noopener noreferrer">
               <Navigation className="h-4 w-4" aria-hidden />
-              Cómo llegar
+              {textOr(config.mapa_boton, "Cómo llegar")}
             </a>
           </Button>
         </div>

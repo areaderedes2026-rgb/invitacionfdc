@@ -127,6 +127,36 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           />
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="evento_label_fecha">Etiqueta de fecha</Label>
+            <Input
+              id="evento_label_fecha"
+              value={config.evento_label_fecha}
+              placeholder="Fecha"
+              onChange={(e) => update("evento_label_fecha", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="evento_label_hora">Etiqueta de hora</Label>
+            <Input
+              id="evento_label_hora"
+              value={config.evento_label_hora}
+              placeholder="Hora"
+              onChange={(e) => update("evento_label_hora", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="evento_label_lugar">Etiqueta de lugar</Label>
+            <Input
+              id="evento_label_lugar"
+              value={config.evento_label_lugar}
+              placeholder="Lugar"
+              onChange={(e) => update("evento_label_lugar", e.target.value)}
+            />
+          </div>
+        </div>
+
         <div className="overflow-hidden rounded-2xl border border-ocre/20">
           <p className="bg-noche/5 px-4 py-2 font-ui text-xs uppercase tracking-[0.18em] text-sepia">
             Vista previa
@@ -191,6 +221,91 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <p className="text-xs text-sepia">
               Vacío = se muestra solo el inicio.
             </p>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-display text-lg tracking-wide">Títulos de la cuenta regresiva</h4>
+          <p className="mt-1 text-sm text-sepia">
+            La línea chica va arriba; el título grande es el que ves ahora como
+            “Hasta el inicio del festival”.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="cuenta_etiqueta">Línea chica</Label>
+            <Input
+              id="cuenta_etiqueta"
+              value={config.cuenta_etiqueta}
+              placeholder="Cuenta regresiva"
+              onChange={(e) => update("cuenta_etiqueta", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cuenta_titulo">Título grande</Label>
+            <Input
+              id="cuenta_titulo"
+              value={config.cuenta_titulo}
+              placeholder="Hasta el inicio del lanzamiento"
+              onChange={(e) => update("cuenta_titulo", e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="cuenta_titulo_fin">Título cuando ya empezó</Label>
+          <Input
+            id="cuenta_titulo_fin"
+            value={config.cuenta_titulo_fin}
+            placeholder="La fiesta ha comenzado"
+            onChange={(e) => update("cuenta_titulo_fin", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <h4 className="font-display text-lg tracking-wide">Títulos del mapa</h4>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="mapa_titulo">Título del mapa</Label>
+            <Input
+              id="mapa_titulo"
+              value={config.mapa_titulo}
+              placeholder="Ubicación"
+              onChange={(e) => update("mapa_titulo", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="mapa_boton">Texto del botón</Label>
+            <Input
+              id="mapa_boton"
+              value={config.mapa_boton}
+              placeholder="Cómo llegar"
+              onChange={(e) => update("mapa_boton", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-display text-lg tracking-wide">Títulos de confirmación</h4>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_etiqueta">Línea chica de confirmación</Label>
+            <Input
+              id="rsvp_etiqueta"
+              value={config.rsvp_etiqueta}
+              placeholder="Confirmación de asistencia"
+              onChange={(e) => update("rsvp_etiqueta", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_titulo">Título de confirmación</Label>
+            <Input
+              id="rsvp_titulo"
+              value={config.rsvp_titulo}
+              placeholder="Confirmar Presencia"
+              onChange={(e) => update("rsvp_titulo", e.target.value)}
+            />
           </div>
         </div>
 

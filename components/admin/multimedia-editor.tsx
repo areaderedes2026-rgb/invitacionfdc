@@ -15,7 +15,10 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
   const [config, setConfig] = useState(initialConfig);
   const [saving, setSaving] = useState(false);
 
-  const update = (key: "musica_url" | "video_url" | "logo_fiesta", value: string) => {
+  const update = (
+    key: "musica_url" | "video_url" | "logo_fiesta" | "video_titulo",
+    value: string
+  ) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -102,6 +105,15 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
             Opcional. Si está vacío, la sección no se muestra. Podés pegar un
             enlace de YouTube; se convierte solo a formato embed.
           </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="video_titulo">Título de la sección</Label>
+          <Input
+            id="video_titulo"
+            value={config.video_titulo}
+            placeholder="Video institucional"
+            onChange={(e) => update("video_titulo", e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="video_url">URL de YouTube o archivo</Label>

@@ -1,6 +1,7 @@
 "use client";
 
 import { extractYoutubeId, youtubeEmbedUrl } from "@/lib/youtube";
+import { textOr } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
 export function VideoSection({ config }: { config: SiteConfig }) {
@@ -17,7 +18,7 @@ export function VideoSection({ config }: { config: SiteConfig }) {
           data-gsap="fade-up"
           className="mb-8 text-center font-display text-3xl tracking-[0.08em]"
         >
-          Video institucional
+          {textOr(config.video_titulo, "Video institucional")}
         </h2>
         <div
           data-gsap="clip-left"
@@ -26,7 +27,7 @@ export function VideoSection({ config }: { config: SiteConfig }) {
           <div className="relative aspect-video w-full bg-ink">
             {youtubeId ? (
               <iframe
-                title="Video institucional"
+                title={textOr(config.video_titulo, "Video institucional")}
                 src={youtubeSrc}
                 className="absolute inset-0 h-full w-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

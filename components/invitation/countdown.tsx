@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useCountdown } from "@/hooks/use-countdown";
 import { GoldRule } from "@/components/shared/ornament";
-import { isValidDateValue } from "@/lib/utils";
+import { isValidDateValue, textOr } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
 function Unit({ label, value }: { label: string; value: number }) {
@@ -45,7 +45,7 @@ export function Countdown({ config }: { config: SiteConfig }) {
           data-gsap="fade-in"
           className="font-ui text-[0.65rem] uppercase tracking-[0.32em] text-ocre sm:text-xs"
         >
-          Cuenta regresiva
+          {textOr(config.cuenta_etiqueta, "Cuenta regresiva")}
         </p>
         <h2
           id="cuenta-title"
@@ -53,7 +53,9 @@ export function Countdown({ config }: { config: SiteConfig }) {
           data-gsap-delay="0.08"
           className="mt-3 font-display text-2xl tracking-[0.06em] sm:text-3xl md:text-4xl"
         >
-          {completed ? "La fiesta ha comenzado" : "Hasta el inicio del festival"}
+          {completed
+            ? textOr(config.cuenta_titulo_fin, "La fiesta ha comenzado")
+            : textOr(config.cuenta_titulo, "Hasta el inicio del festival")}
         </h2>
         <GoldRule data-gsap="line" className="mx-auto my-5 origin-center" />
 

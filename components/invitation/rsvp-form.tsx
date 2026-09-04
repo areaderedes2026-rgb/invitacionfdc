@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoldRule } from "@/components/shared/ornament";
-import { cn } from "@/lib/utils";
+import { cn, textOr } from "@/lib/utils";
 import { useExperienceStore } from "@/store/experience-store";
+import type { SiteConfig } from "@/types";
 
 const schema = z.object({
   nombre: z.string().min(2, "Ingrese su nombre"),
@@ -33,7 +34,7 @@ const fieldClass =
 
 const labelClass = "text-[0.62rem] uppercase tracking-[0.18em] text-ocre";
 
-export function RsvpForm() {
+export function RsvpForm({ config }: { config?: SiteConfig }) {
   const enlaceOrigen = useExperienceStore((s) => s.enlaceOrigen);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -92,7 +93,7 @@ export function RsvpForm() {
             data-gsap="fade-in"
             className="font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre"
           >
-            Confirmación de asistencia
+            {textOr(config?.rsvp_etiqueta, "Confirmación de asistencia")}
           </p>
           <h2
             id="rsvp-title"
@@ -100,7 +101,7 @@ export function RsvpForm() {
             data-gsap-delay="0.06"
             className="mt-2 font-display text-xl tracking-[0.08em] sm:text-2xl"
           >
-            Confirmar Presencia
+            {textOr(config?.rsvp_titulo, "Confirmar Presencia")}
           </h2>
           <GoldRule data-gsap="line" className="my-4 w-16 origin-center" />
         </div>

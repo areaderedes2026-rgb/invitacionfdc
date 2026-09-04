@@ -3,7 +3,7 @@
 import { CoverMedia } from "@/components/shared/cover-media";
 import { useEffect, useMemo, useState } from "react";
 import { GoldRule } from "@/components/shared/ornament";
-import { formatEventDateRange, formatEventTime } from "@/lib/utils";
+import { formatEventDateRange, formatEventTime, textOr } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
 function clampOverlay(value: number) {
@@ -31,18 +31,18 @@ export function EventInfo({
     () =>
       [
         {
-          label: "Fecha",
+          label: textOr(config.evento_label_fecha, "Fecha"),
           value:
             config.evento_fecha_texto?.trim() ||
             formatEventDateRange(config.fecha_evento, config.fecha_fin),
         },
         {
-          label: "Hora",
+          label: textOr(config.evento_label_hora, "Hora"),
           value:
             config.evento_hora_texto?.trim() || formatEventTime(config.fecha_evento),
         },
         {
-          label: "Lugar",
+          label: textOr(config.evento_label_lugar, "Lugar"),
           value: config.evento_lugar_texto?.trim() || config.ubicacion,
           detail: config.ubicacion_detalle,
         },

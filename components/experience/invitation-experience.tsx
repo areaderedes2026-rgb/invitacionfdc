@@ -85,7 +85,7 @@ export function InvitationExperience({
                 <MapSection config={config} />
                 <Timeline config={config} />
                 <VideoSection config={config} />
-                <RsvpForm />
+                <RsvpForm config={config} />
                 <Footer config={config} />
               </GsapStory>
             </motion.main>

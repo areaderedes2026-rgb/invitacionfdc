@@ -74,6 +74,17 @@ export interface SiteConfig {
   evento_fecha_texto: string;
   evento_hora_texto: string;
   evento_lugar_texto: string;
+  cuenta_etiqueta: string;
+  cuenta_titulo: string;
+  cuenta_titulo_fin: string;
+  mapa_titulo: string;
+  mapa_boton: string;
+  video_titulo: string;
+  rsvp_etiqueta: string;
+  rsvp_titulo: string;
+  evento_label_fecha: string;
+  evento_label_hora: string;
+  evento_label_lugar: string;
   cronograma_fondo_url: string;
   cronograma_overlay: number;
   cronograma_titulo: string;

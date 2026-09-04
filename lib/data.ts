@@ -41,6 +41,11 @@ function asString(value: unknown, fallback: string) {
   return typeof value === "string" ? value : fallback;
 }
 
+function asFilled(value: unknown, fallback: string) {
+  if (typeof value !== "string") return fallback;
+  return value.trim() ? value : fallback;
+}
+
 function asTimestamp(value: unknown, fallback = "") {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     return value.toISOString();
@@ -97,6 +102,17 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     evento_fecha_texto: asString(raw.evento_fecha_texto, DEFAULT_CONFIG.evento_fecha_texto),
     evento_hora_texto: asString(raw.evento_hora_texto, DEFAULT_CONFIG.evento_hora_texto),
     evento_lugar_texto: asString(raw.evento_lugar_texto, DEFAULT_CONFIG.evento_lugar_texto),
+    cuenta_etiqueta: asFilled(raw.cuenta_etiqueta, DEFAULT_CONFIG.cuenta_etiqueta),
+    cuenta_titulo: asFilled(raw.cuenta_titulo, DEFAULT_CONFIG.cuenta_titulo),
+    cuenta_titulo_fin: asFilled(raw.cuenta_titulo_fin, DEFAULT_CONFIG.cuenta_titulo_fin),
+    mapa_titulo: asFilled(raw.mapa_titulo, DEFAULT_CONFIG.mapa_titulo),
+    mapa_boton: asFilled(raw.mapa_boton, DEFAULT_CONFIG.mapa_boton),
+    video_titulo: asFilled(raw.video_titulo, DEFAULT_CONFIG.video_titulo),
+    rsvp_etiqueta: asFilled(raw.rsvp_etiqueta, DEFAULT_CONFIG.rsvp_etiqueta),
+    rsvp_titulo: asFilled(raw.rsvp_titulo, DEFAULT_CONFIG.rsvp_titulo),
+    evento_label_fecha: asFilled(raw.evento_label_fecha, DEFAULT_CONFIG.evento_label_fecha),
+    evento_label_hora: asFilled(raw.evento_label_hora, DEFAULT_CONFIG.evento_label_hora),
+    evento_label_lugar: asFilled(raw.evento_label_lugar, DEFAULT_CONFIG.evento_label_lugar),
     cronograma_fondo_url: asString(raw.cronograma_fondo_url, DEFAULT_CONFIG.cronograma_fondo_url),
     cronograma_overlay: asNumber(raw.cronograma_overlay, DEFAULT_CONFIG.cronograma_overlay),
     cronograma_titulo: asString(raw.cronograma_titulo, DEFAULT_CONFIG.cronograma_titulo),
@@ -161,6 +177,17 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       evento_fecha_texto: next.evento_fecha_texto,
       evento_hora_texto: next.evento_hora_texto,
       evento_lugar_texto: next.evento_lugar_texto,
+      cuenta_etiqueta: next.cuenta_etiqueta,
+      cuenta_titulo: next.cuenta_titulo,
+      cuenta_titulo_fin: next.cuenta_titulo_fin,
+      mapa_titulo: next.mapa_titulo,
+      mapa_boton: next.mapa_boton,
+      video_titulo: next.video_titulo,
+      rsvp_etiqueta: next.rsvp_etiqueta,
+      rsvp_titulo: next.rsvp_titulo,
+      evento_label_fecha: next.evento_label_fecha,
+      evento_label_hora: next.evento_label_hora,
+      evento_label_lugar: next.evento_label_lugar,
       cronograma_fondo_url: next.cronograma_fondo_url,
       cronograma_overlay: next.cronograma_overlay,
       cronograma_titulo: next.cronograma_titulo,
@@ -177,8 +204,19 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       "carta_fuente",
       "carta_tamano",
       "carta_grosor",
+      "cuenta_etiqueta",
+      "cuenta_titulo",
+      "cuenta_titulo_fin",
+      "mapa_titulo",
+      "mapa_boton",
+      "video_titulo",
+      "rsvp_etiqueta",
+      "rsvp_titulo",
+      "evento_label_fecha",
+      "evento_label_hora",
+      "evento_label_lugar",
     ];
-    let current: Record<string, unknown> = { ...payload };
+    const current: Record<string, unknown> = { ...payload };
     let { error } = await supabase.from("configuracion").upsert(current);
 
     for (let i = 0; i < optional.length && error; i++) {
