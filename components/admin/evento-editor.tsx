@@ -1,0 +1,245 @@
+"use client";
+
+import { useState } from "react";
+import { toast } from "sonner";
+import { Loader2, Save } from "lucide-react";
+import { EventInfo } from "@/components/invitation/event-info";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import type { SiteConfig } from "@/types";
+
+function datetimeValue(value: string) {
+  return value.slice(0, 16);
+}
+
+export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
+  const [config, setConfig] = useState(initialConfig);
+  const [saving, setSaving] = useState(false);
+
+  const update = <K extends keyof SiteConfig>(key: K, value: SiteConfig[K]) => {
+    setConfig((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Error al guardar");
+      }
+      toast.success("Cambios guardados");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="font-display text-3xl tracking-wide">Información del evento</h2>
+        <p className="mt-2 text-sm text-sepia">
+          Fecha, hora, lugar y el fondo visual de esa sección.
+        </p>
+      </div>
+
+      <div className="space-y-5 rounded-2xl border border-gold/20 bg-cream p-6">
+        <div>
+          <h3 className="font-display text-xl tracking-wide">Bloque fecha, hora y lugar</h3>
+          <p className="mt-1 text-sm text-sepia">
+            Imagen de fondo, overlay oscuro y textos. Si un texto queda vacío, se
+            genera solo a partir de la fecha y el lugar.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="evento_fondo_url">Imagen de fondo</Label>
+          <Input
+            id="evento_fondo_url"
+            value={config.evento_fondo_url}
+            placeholder="/images/gallery-caballo.png o https://..."
+            onChange={(e) => update("evento_fondo_url", e.target.value)}
+          />
+          <p className="text-xs text-sepia">
+            Usá una ruta del sitio o una URL pública de imagen.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="evento_overlay">
+            Intensidad del overlay oscuro: {config.evento_overlay}%
+          </Label>
+          <input
+            id="evento_overlay"
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={Number(config.evento_overlay) || 0}
+            onChange={(e) => update("evento_overlay", Number(e.target.value))}
+            className="h-2 w-full cursor-pointer appearance-none rounded-full bg-noche/15 accent-ocre"
+          />
+          <p className="text-xs text-sepia">
+            0 deja ver la foto completa. 100 cubre casi toda la imagen para que
+            el texto se lea mejor.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="evento_fecha_texto">Texto de fecha</Label>
+            <Input
+              id="evento_fecha_texto"
+              value={config.evento_fecha_texto}
+              placeholder="Se genera automáticamente"
+              onChange={(e) => update("evento_fecha_texto", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="evento_hora_texto">Texto de hora</Label>
+            <Input
+              id="evento_hora_texto"
+              value={config.evento_hora_texto}
+              placeholder="Se genera automáticamente"
+              onChange={(e) => update("evento_hora_texto", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="evento_lugar_texto">Texto de lugar</Label>
+          <Input
+            id="evento_lugar_texto"
+            value={config.evento_lugar_texto}
+            placeholder="Se usa el lugar institucional"
+            onChange={(e) => update("evento_lugar_texto", e.target.value)}
+          />
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-ocre/20">
+          <p className="bg-noche/5 px-4 py-2 font-ui text-xs uppercase tracking-[0.18em] text-sepia">
+            Vista previa
+          </p>
+          <div className="max-h-[28rem] overflow-hidden">
+            <EventInfo config={config} preview />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-5 rounded-2xl border border-gold/20 bg-cream p-6">
+        <h3 className="font-display text-xl tracking-wide">Datos institucionales</h3>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="fecha_evento">Inicio del festival</Label>
+            <Input
+              id="fecha_evento"
+              type="datetime-local"
+              value={datetimeValue(config.fecha_evento)}
+              onChange={(e) =>
+                update(
+                  "fecha_evento",
+                  e.target.value ? `${e.target.value}:00-03:00` : ""
+                )
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="fecha_fin">Fin del festival</Label>
+            <Input
+              id="fecha_fin"
+              type="datetime-local"
+              value={datetimeValue(config.fecha_fin)}
+              onChange={(e) =>
+                update(
+                  "fecha_fin",
+                  e.target.value ? `${e.target.value}:00-03:00` : ""
+                )
+              }
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="horarios">Horarios</Label>
+          <Textarea
+            id="horarios"
+            rows={3}
+            value={config.horarios}
+            onChange={(e) => update("horarios", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="ubicacion">Lugar</Label>
+          <Input
+            id="ubicacion"
+            value={config.ubicacion}
+            onChange={(e) => update("ubicacion", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="ubicacion_detalle">Detalle de ubicación</Label>
+          <Input
+            id="ubicacion_detalle"
+            value={config.ubicacion_detalle}
+            onChange={(e) => update("ubicacion_detalle", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="mapa_url">URL Cómo llegar</Label>
+          <Input
+            id="mapa_url"
+            value={config.mapa_url}
+            onChange={(e) => update("mapa_url", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="mapa_embed">URL embed de Google Maps</Label>
+          <Textarea
+            id="mapa_embed"
+            rows={3}
+            value={config.mapa_embed}
+            onChange={(e) => update("mapa_embed", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="accesos">Accesos</Label>
+          <Textarea
+            id="accesos"
+            rows={3}
+            value={config.accesos}
+            onChange={(e) => update("accesos", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="info_protocolar">Información protocolar</Label>
+          <Textarea
+            id="info_protocolar"
+            rows={4}
+            value={config.info_protocolar}
+            onChange={(e) => update("info_protocolar", e.target.value)}
+          />
+        </div>
+
+        <Button type="button" variant="admin" onClick={save} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Guardar cambios
+        </Button>
+      </div>
+    </div>
+  );
+}
