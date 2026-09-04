@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoldRule } from "@/components/shared/ornament";
-import { cn, textOr } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { rsvpText } from "@/lib/rsvp-copy";
 import { useExperienceStore } from "@/store/experience-store";
 import type { SiteConfig } from "@/types";
 
@@ -34,12 +35,22 @@ const fieldClass =
 
 const labelClass = "text-[0.62rem] uppercase tracking-[0.18em] text-ocre";
 
-export function RsvpForm({ config }: { config?: SiteConfig }) {
+export function RsvpForm({
+  config,
+  preview = false,
+  previewState = "closed",
+}: {
+  config?: SiteConfig;
+  preview?: boolean;
+  previewState?: "closed" | "form" | "done";
+}) {
   const enlaceOrigen = useExperienceStore((s) => s.enlaceOrigen);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [open, setOpen] = useState(false);
   const [asistenciaUi, setAsistenciaUi] = useState<"si" | "no">("si");
+
+  const t = (key: Parameters<typeof rsvpText>[1]) => rsvpText(config, key);
 
   const {
     register,
@@ -59,6 +70,7 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
   };
 
   const onSubmit = async (values: FormValues) => {
+    if (preview) return;
     setSubmitting(true);
     try {
       const res = await fetch("/api/rsvp", {
@@ -73,13 +85,17 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
       }
 
       setDone(true);
-      toast.success("Confirmación registrada con éxito");
+      toast.success(t("rsvp_gracias_titulo"));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error inesperado");
     } finally {
       setSubmitting(false);
     }
   };
+
+  const showDone = preview ? previewState === "done" : done;
+  const showForm = preview ? previewState === "form" : open && !done;
+  const gsap = preview ? undefined : true;
 
   return (
     <section
@@ -90,55 +106,55 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
       <div className="w-full px-5 sm:px-8 lg:px-12">
         <div className="text-center">
           <p
-            data-gsap="fade-in"
+            data-gsap={gsap ? "fade-in" : undefined}
             className="font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre"
           >
-            {textOr(config?.rsvp_etiqueta, "Confirmación de asistencia")}
+            {t("rsvp_etiqueta")}
           </p>
           <h2
             id="rsvp-title"
-            data-gsap="fade-up"
-            data-gsap-delay="0.06"
+            data-gsap={gsap ? "fade-up" : undefined}
+            data-gsap-delay={gsap ? "0.06" : undefined}
             className="mt-2 font-display text-xl tracking-[0.08em] sm:text-2xl"
           >
-            {textOr(config?.rsvp_titulo, "Confirmar Presencia")}
+            {t("rsvp_titulo")}
           </h2>
-          <GoldRule data-gsap="line" className="my-4 w-16 origin-center" />
+          <GoldRule data-gsap={gsap ? "line" : undefined} className="my-4 w-16 origin-center" />
         </div>
 
-        {done ? (
+        {showDone ? (
           <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
+            initial={preview ? false : { opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto max-w-xl py-4 text-center"
           >
             <CheckCircle2 className="mx-auto h-8 w-8 text-ocre" />
-            <p className="mt-3 font-script text-3xl text-noche">Gracias</p>
+            <p className="mt-3 font-script text-3xl text-noche">{t("rsvp_gracias_titulo")}</p>
             <p className="mt-2 font-editorial text-base text-ink-soft sm:text-lg">
-              Su confirmación ha sido registrada. Será un honor recibirlo/a en
-              Trancas.
+              {t("rsvp_gracias_texto")}
             </p>
           </motion.div>
-        ) : open ? (
+        ) : showForm ? (
           <motion.form
             className="mx-auto w-full max-w-5xl space-y-5"
             onSubmit={handleSubmit(onSubmit)}
             noValidate
-            initial={{ opacity: 0, y: 18 }}
+            initial={preview ? false : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="nombre" className={labelClass}>
-                  Nombre
+                  {t("rsvp_label_nombre")}
                 </Label>
                 <Input
                   id="nombre"
                   autoComplete="given-name"
                   enterKeyHint="next"
                   className={fieldClass}
+                  disabled={preview}
                   {...register("nombre")}
                 />
                 {errors.nombre ? (
@@ -147,13 +163,14 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="apellido" className={labelClass}>
-                  Apellido
+                  {t("rsvp_label_apellido")}
                 </Label>
                 <Input
                   id="apellido"
                   autoComplete="family-name"
                   enterKeyHint="next"
                   className={fieldClass}
+                  disabled={preview}
                   {...register("apellido")}
                 />
                 {errors.apellido ? (
@@ -164,12 +181,13 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="cargo" className={labelClass}>
-                  Cargo
+                  {t("rsvp_label_cargo")}
                 </Label>
                 <Input
                   id="cargo"
                   enterKeyHint="next"
                   className={fieldClass}
+                  disabled={preview}
                   {...register("cargo")}
                 />
                 {errors.cargo ? (
@@ -178,12 +196,13 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="institucion" className={labelClass}>
-                  Institución
+                  {t("rsvp_label_institucion")}
                 </Label>
                 <Input
                   id="institucion"
                   enterKeyHint="next"
                   className={fieldClass}
+                  disabled={preview}
                   {...register("institucion")}
                 />
                 {errors.institucion ? (
@@ -194,7 +213,7 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="telefono" className={labelClass}>
-                  Teléfono
+                  {t("rsvp_label_telefono")}
                 </Label>
                 <Input
                   id="telefono"
@@ -203,6 +222,7 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
                   autoComplete="tel"
                   enterKeyHint="next"
                   className={fieldClass}
+                  disabled={preview}
                   {...register("telefono")}
                 />
                 {errors.telefono ? (
@@ -213,7 +233,7 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="email" className={labelClass}>
-                  Correo electrónico
+                  {t("rsvp_label_email")}
                 </Label>
                 <Input
                   id="email"
@@ -222,6 +242,7 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
                   autoComplete="email"
                   enterKeyHint="done"
                   className={fieldClass}
+                  disabled={preview}
                   {...register("email")}
                 />
                 {errors.email ? (
@@ -231,7 +252,7 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
             </div>
 
             <div className="space-y-2">
-              <Label className={labelClass}>¿Confirmará asistencia?</Label>
+              <Label className={labelClass}>{t("rsvp_pregunta")}</Label>
               <div className="grid grid-cols-2 gap-px overflow-hidden border border-ocre/30">
                 <button
                   type="button"
@@ -243,7 +264,7 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
                   )}
                   onClick={() => chooseAsistencia("si")}
                 >
-                  Sí, asistiré
+                  {t("rsvp_boton_si")}
                 </button>
                 <button
                   type="button"
@@ -255,7 +276,7 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
                   )}
                   onClick={() => chooseAsistencia("no")}
                 >
-                  No podré
+                  {t("rsvp_boton_no")}
                 </button>
               </div>
               {errors.asistencia ? (
@@ -269,27 +290,33 @@ export function RsvpForm({ config }: { config?: SiteConfig }) {
               type="submit"
               variant="gold"
               className="mt-1 h-11 w-full rounded-none text-xs tracking-[0.22em] touch-manipulation"
-              disabled={submitting}
+              disabled={submitting || preview}
             >
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Enviando...
+                  {t("rsvp_boton_enviando")}
                 </>
               ) : (
-                "Confirmar presencia"
+                t("rsvp_boton_enviar")
               )}
             </Button>
           </motion.form>
         ) : (
-          <div data-gsap="scale-in" data-gsap-delay="0.1" className="mt-5">
+          <div
+            data-gsap={gsap ? "scale-in" : undefined}
+            data-gsap-delay={gsap ? "0.1" : undefined}
+            className="mt-5"
+          >
             <Button
               type="button"
               variant="gold"
               className="h-11 w-full rounded-none text-xs tracking-[0.22em] touch-manipulation"
-              onClick={() => setOpen(true)}
+              onClick={() => {
+                if (!preview) setOpen(true);
+              }}
             >
-              Confirmar asistencia
+              {t("rsvp_boton_abrir")}
             </Button>
           </div>
         )}

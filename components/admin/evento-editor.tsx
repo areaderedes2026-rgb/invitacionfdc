@@ -4,11 +4,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
 import { EventInfo } from "@/components/invitation/event-info";
+import { RsvpForm } from "@/components/invitation/rsvp-form";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
 function datetimeValue(value: string) {
@@ -18,6 +20,7 @@ function datetimeValue(value: string) {
 export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
   const [config, setConfig] = useState(initialConfig);
   const [saving, setSaving] = useState(false);
+  const [rsvpPreview, setRsvpPreview] = useState<"closed" | "form" | "done">("closed");
 
   const update = <K extends keyof SiteConfig>(key: K, value: SiteConfig[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -31,11 +34,12 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Error al guardar");
       }
-      toast.success("Cambios guardados");
+      if (data.config) setConfig(data.config);
+      toast.success("Cambios guardados. Recargá la invitación para verlos.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al guardar");
     } finally {
@@ -53,8 +57,8 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           Evento y mapa
         </h2>
         <p className="mt-2 text-sm text-sepia">
-          Fecha, hora, lugar, cuenta regresiva y cómo llegar. Lo que no está acá
-          no se muestra en la invitación.
+          Fecha, hora, lugar, cuenta regresiva, cómo llegar y textos de
+          confirmación de asistencia.
         </p>
       </div>
 
@@ -285,30 +289,6 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           </div>
         </div>
 
-        <div>
-          <h4 className="font-display text-lg tracking-wide">Títulos de confirmación</h4>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="rsvp_etiqueta">Línea chica de confirmación</Label>
-            <Input
-              id="rsvp_etiqueta"
-              value={config.rsvp_etiqueta}
-              placeholder="Confirmación de asistencia"
-              onChange={(e) => update("rsvp_etiqueta", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="rsvp_titulo">Título de confirmación</Label>
-            <Input
-              id="rsvp_titulo"
-              value={config.rsvp_titulo}
-              placeholder="Confirmar Presencia"
-              onChange={(e) => update("rsvp_titulo", e.target.value)}
-            />
-          </div>
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="ubicacion">Lugar (si no hay texto de lugar arriba)</Label>
           <Input
@@ -344,6 +324,214 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             value={config.mapa_embed}
             onChange={(e) => update("mapa_embed", e.target.value)}
           />
+        </div>
+
+        <Button type="button" variant="admin" onClick={() => void save()} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Guardar cambios
+        </Button>
+      </div>
+
+      <div className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
+        <div>
+          <h3 className="font-display text-xl tracking-wide">Confirmar presencia</h3>
+          <p className="mt-1 text-sm text-sepia">
+            Títulos, botones, pregunta de asistencia, etiquetas del formulario y
+            el mensaje de agradecimiento.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_etiqueta">Línea chica</Label>
+            <Input
+              id="rsvp_etiqueta"
+              value={config.rsvp_etiqueta}
+              placeholder="Confirmación de asistencia"
+              onChange={(e) => update("rsvp_etiqueta", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_titulo">Título</Label>
+            <Input
+              id="rsvp_titulo"
+              value={config.rsvp_titulo}
+              placeholder="Confirmar Presencia"
+              onChange={(e) => update("rsvp_titulo", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_boton_abrir">Botón inicial</Label>
+            <Input
+              id="rsvp_boton_abrir"
+              value={config.rsvp_boton_abrir}
+              placeholder="Confirmar asistencia"
+              onChange={(e) => update("rsvp_boton_abrir", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_boton_enviar">Botón de envío</Label>
+            <Input
+              id="rsvp_boton_enviar"
+              value={config.rsvp_boton_enviar}
+              placeholder="Confirmar presencia"
+              onChange={(e) => update("rsvp_boton_enviar", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="rsvp_boton_enviando">Texto mientras envía</Label>
+          <Input
+            id="rsvp_boton_enviando"
+            value={config.rsvp_boton_enviando}
+            placeholder="Enviando..."
+            onChange={(e) => update("rsvp_boton_enviando", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="rsvp_pregunta">Pregunta de asistencia</Label>
+          <Input
+            id="rsvp_pregunta"
+            value={config.rsvp_pregunta}
+            placeholder="¿Confirmará asistencia?"
+            onChange={(e) => update("rsvp_pregunta", e.target.value)}
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_boton_si">Botón sí</Label>
+            <Input
+              id="rsvp_boton_si"
+              value={config.rsvp_boton_si}
+              placeholder="Sí, asistiré"
+              onChange={(e) => update("rsvp_boton_si", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_boton_no">Botón no</Label>
+            <Input
+              id="rsvp_boton_no"
+              value={config.rsvp_boton_no}
+              placeholder="No podré"
+              onChange={(e) => update("rsvp_boton_no", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_gracias_titulo">Título de agradecimiento</Label>
+            <Input
+              id="rsvp_gracias_titulo"
+              value={config.rsvp_gracias_titulo}
+              placeholder="Gracias"
+              onChange={(e) => update("rsvp_gracias_titulo", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="rsvp_gracias_texto">Texto de agradecimiento</Label>
+            <Textarea
+              id="rsvp_gracias_texto"
+              rows={3}
+              value={config.rsvp_gracias_texto}
+              placeholder="Su confirmación ha sido registrada."
+              onChange={(e) => update("rsvp_gracias_texto", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-display text-lg tracking-wide">Etiquetas del formulario</h4>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_label_nombre">Nombre</Label>
+            <Input
+              id="rsvp_label_nombre"
+              value={config.rsvp_label_nombre}
+              onChange={(e) => update("rsvp_label_nombre", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_label_apellido">Apellido</Label>
+            <Input
+              id="rsvp_label_apellido"
+              value={config.rsvp_label_apellido}
+              onChange={(e) => update("rsvp_label_apellido", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_label_cargo">Cargo</Label>
+            <Input
+              id="rsvp_label_cargo"
+              value={config.rsvp_label_cargo}
+              onChange={(e) => update("rsvp_label_cargo", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_label_institucion">Institución</Label>
+            <Input
+              id="rsvp_label_institucion"
+              value={config.rsvp_label_institucion}
+              onChange={(e) => update("rsvp_label_institucion", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_label_telefono">Teléfono</Label>
+            <Input
+              id="rsvp_label_telefono"
+              value={config.rsvp_label_telefono}
+              onChange={(e) => update("rsvp_label_telefono", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rsvp_label_email">Correo</Label>
+            <Input
+              id="rsvp_label_email"
+              value={config.rsvp_label_email}
+              onChange={(e) => update("rsvp_label_email", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-ocre/20">
+          <div className="flex flex-wrap items-center justify-between gap-2 bg-noche/5 px-4 py-2">
+            <p className="font-ui text-xs uppercase tracking-[0.18em] text-sepia">
+              Vista previa
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {(
+                [
+                  ["closed", "Botón"],
+                  ["form", "Formulario"],
+                  ["done", "Agradecimiento"],
+                ] as const
+              ).map(([state, label]) => (
+                <button
+                  key={state}
+                  type="button"
+                  className={cn(
+                    "rounded-full px-3 py-1 font-ui text-[0.65rem] uppercase tracking-[0.14em]",
+                    rsvpPreview === state
+                      ? "bg-noche text-marfil"
+                      : "bg-white text-sepia"
+                  )}
+                  onClick={() => setRsvpPreview(state)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="bg-marfil">
+            <RsvpForm config={config} preview previewState={rsvpPreview} />
+          </div>
         </div>
 
         <Button type="button" variant="admin" onClick={() => void save()} disabled={saving}>

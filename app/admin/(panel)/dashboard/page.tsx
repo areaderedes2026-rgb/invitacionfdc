@@ -22,7 +22,7 @@ export default async function AdminDashboardPage() {
 
   const shortcuts = [
     { href: "/admin/carta", label: "Inicio, carta y firmas" },
-    { href: "/admin/evento", label: "Fecha, lugar y mapa" },
+    { href: "/admin/evento", label: "Fecha, lugar, mapa y confirmación" },
     { href: "/admin/cronograma", label: "Actividades por día" },
     { href: "/admin/multimedia", label: "Logo, audio y video" },
   ];

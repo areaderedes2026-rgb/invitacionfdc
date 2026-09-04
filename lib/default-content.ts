@@ -1,4 +1,5 @@
 import type { SiteConfig } from "@/types";
+import { DEFAULT_RSVP_COPY } from "@/lib/rsvp-copy";
 
 export const DEFAULT_CONFIG: SiteConfig = {
   titulo: "XXVII Fiesta Nacional e Internacional del Caballo",
@@ -43,8 +44,7 @@ Aguardamos el privilegio de recibirlo/a.`,
   mapa_titulo: "Ubicación",
   mapa_boton: "Cómo llegar",
   video_titulo: "Video institucional",
-  rsvp_etiqueta: "Confirmación de asistencia",
-  rsvp_titulo: "Confirmar Presencia",
+  ...DEFAULT_RSVP_COPY,
   evento_label_fecha: "Fecha",
   evento_label_hora: "Hora",
   evento_label_lugar: "Lugar",

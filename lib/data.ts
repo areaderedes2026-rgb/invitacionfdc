@@ -8,6 +8,7 @@ import {
   packCarta,
   unpackCarta,
 } from "@/lib/carta-style";
+import { mergeRsvpMeta, pickRsvpCopy, splitRsvpMeta } from "@/lib/rsvp-copy";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { AccessLog, Confirmation, RsvpPayload, SiteConfig } from "@/types";
 
@@ -79,6 +80,7 @@ function asNumber(value: unknown, fallback: number) {
 function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | null): SiteConfig {
   const raw = (row || {}) as Record<string, unknown>;
   const packed = unpackCarta(asString(raw.carta, DEFAULT_CONFIG.carta));
+  const rsvp = splitRsvpMeta(raw.galeria);
   return {
     ...DEFAULT_CONFIG,
     carta: packed.text,
@@ -119,8 +121,70 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     mapa_titulo: asFilled(raw.mapa_titulo, DEFAULT_CONFIG.mapa_titulo),
     mapa_boton: asFilled(raw.mapa_boton, DEFAULT_CONFIG.mapa_boton),
     video_titulo: asFilled(raw.video_titulo, DEFAULT_CONFIG.video_titulo),
-    rsvp_etiqueta: asFilled(raw.rsvp_etiqueta, DEFAULT_CONFIG.rsvp_etiqueta),
-    rsvp_titulo: asFilled(raw.rsvp_titulo, DEFAULT_CONFIG.rsvp_titulo),
+    rsvp_etiqueta: asFilled(
+      rsvp.packed.rsvp_etiqueta ?? raw.rsvp_etiqueta,
+      DEFAULT_CONFIG.rsvp_etiqueta
+    ),
+    rsvp_titulo: asFilled(
+      rsvp.packed.rsvp_titulo ?? raw.rsvp_titulo,
+      DEFAULT_CONFIG.rsvp_titulo
+    ),
+    rsvp_boton_abrir: asFilled(
+      rsvp.packed.rsvp_boton_abrir ?? raw.rsvp_boton_abrir,
+      DEFAULT_CONFIG.rsvp_boton_abrir
+    ),
+    rsvp_boton_enviar: asFilled(
+      rsvp.packed.rsvp_boton_enviar ?? raw.rsvp_boton_enviar,
+      DEFAULT_CONFIG.rsvp_boton_enviar
+    ),
+    rsvp_boton_enviando: asFilled(
+      rsvp.packed.rsvp_boton_enviando ?? raw.rsvp_boton_enviando,
+      DEFAULT_CONFIG.rsvp_boton_enviando
+    ),
+    rsvp_boton_si: asFilled(
+      rsvp.packed.rsvp_boton_si ?? raw.rsvp_boton_si,
+      DEFAULT_CONFIG.rsvp_boton_si
+    ),
+    rsvp_boton_no: asFilled(
+      rsvp.packed.rsvp_boton_no ?? raw.rsvp_boton_no,
+      DEFAULT_CONFIG.rsvp_boton_no
+    ),
+    rsvp_pregunta: asFilled(
+      rsvp.packed.rsvp_pregunta ?? raw.rsvp_pregunta,
+      DEFAULT_CONFIG.rsvp_pregunta
+    ),
+    rsvp_gracias_titulo: asFilled(
+      rsvp.packed.rsvp_gracias_titulo ?? raw.rsvp_gracias_titulo,
+      DEFAULT_CONFIG.rsvp_gracias_titulo
+    ),
+    rsvp_gracias_texto: asFilled(
+      rsvp.packed.rsvp_gracias_texto ?? raw.rsvp_gracias_texto,
+      DEFAULT_CONFIG.rsvp_gracias_texto
+    ),
+    rsvp_label_nombre: asFilled(
+      rsvp.packed.rsvp_label_nombre ?? raw.rsvp_label_nombre,
+      DEFAULT_CONFIG.rsvp_label_nombre
+    ),
+    rsvp_label_apellido: asFilled(
+      rsvp.packed.rsvp_label_apellido ?? raw.rsvp_label_apellido,
+      DEFAULT_CONFIG.rsvp_label_apellido
+    ),
+    rsvp_label_cargo: asFilled(
+      rsvp.packed.rsvp_label_cargo ?? raw.rsvp_label_cargo,
+      DEFAULT_CONFIG.rsvp_label_cargo
+    ),
+    rsvp_label_institucion: asFilled(
+      rsvp.packed.rsvp_label_institucion ?? raw.rsvp_label_institucion,
+      DEFAULT_CONFIG.rsvp_label_institucion
+    ),
+    rsvp_label_telefono: asFilled(
+      rsvp.packed.rsvp_label_telefono ?? raw.rsvp_label_telefono,
+      DEFAULT_CONFIG.rsvp_label_telefono
+    ),
+    rsvp_label_email: asFilled(
+      rsvp.packed.rsvp_label_email ?? raw.rsvp_label_email,
+      DEFAULT_CONFIG.rsvp_label_email
+    ),
     evento_label_fecha: asFilled(raw.evento_label_fecha, DEFAULT_CONFIG.evento_label_fecha),
     evento_label_hora: asFilled(raw.evento_label_hora, DEFAULT_CONFIG.evento_label_hora),
     evento_label_lugar: asFilled(raw.evento_label_lugar, DEFAULT_CONFIG.evento_label_lugar),
@@ -129,7 +193,7 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     cronograma_titulo: asString(raw.cronograma_titulo, DEFAULT_CONFIG.cronograma_titulo),
     firmas: asArray(raw.firmas, DEFAULT_CONFIG.firmas),
     cronograma: asArray(raw.cronograma, DEFAULT_CONFIG.cronograma),
-    galeria: asArray(raw.galeria, DEFAULT_CONFIG.galeria),
+    galeria: asArray(rsvp.galeria, DEFAULT_CONFIG.galeria),
     enlaces: asArray(raw.enlaces, DEFAULT_CONFIG.enlaces),
   };
 }
@@ -201,6 +265,20 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       video_titulo: next.video_titulo,
       rsvp_etiqueta: next.rsvp_etiqueta,
       rsvp_titulo: next.rsvp_titulo,
+      rsvp_boton_abrir: next.rsvp_boton_abrir,
+      rsvp_boton_enviar: next.rsvp_boton_enviar,
+      rsvp_boton_enviando: next.rsvp_boton_enviando,
+      rsvp_boton_si: next.rsvp_boton_si,
+      rsvp_boton_no: next.rsvp_boton_no,
+      rsvp_pregunta: next.rsvp_pregunta,
+      rsvp_gracias_titulo: next.rsvp_gracias_titulo,
+      rsvp_gracias_texto: next.rsvp_gracias_texto,
+      rsvp_label_nombre: next.rsvp_label_nombre,
+      rsvp_label_apellido: next.rsvp_label_apellido,
+      rsvp_label_cargo: next.rsvp_label_cargo,
+      rsvp_label_institucion: next.rsvp_label_institucion,
+      rsvp_label_telefono: next.rsvp_label_telefono,
+      rsvp_label_email: next.rsvp_label_email,
       evento_label_fecha: next.evento_label_fecha,
       evento_label_hora: next.evento_label_hora,
       evento_label_lugar: next.evento_label_lugar,
@@ -209,7 +287,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       cronograma_titulo: next.cronograma_titulo,
       firmas: next.firmas,
       cronograma: next.cronograma,
-      galeria: next.galeria,
+      galeria: mergeRsvpMeta(next.galeria, pickRsvpCopy(next)),
       enlaces: next.enlaces,
       updated_at: new Date().toISOString(),
     };
@@ -228,6 +306,20 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       "video_titulo",
       "rsvp_etiqueta",
       "rsvp_titulo",
+      "rsvp_boton_abrir",
+      "rsvp_boton_enviar",
+      "rsvp_boton_enviando",
+      "rsvp_boton_si",
+      "rsvp_boton_no",
+      "rsvp_pregunta",
+      "rsvp_gracias_titulo",
+      "rsvp_gracias_texto",
+      "rsvp_label_nombre",
+      "rsvp_label_apellido",
+      "rsvp_label_cargo",
+      "rsvp_label_institucion",
+      "rsvp_label_telefono",
+      "rsvp_label_email",
       "evento_label_fecha",
       "evento_label_hora",
       "evento_label_lugar",
