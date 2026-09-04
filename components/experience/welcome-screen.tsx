@@ -68,10 +68,6 @@ export function WelcomeScreen({ config }: { config: SiteConfig }) {
               Abrir Invitación
             </SealButton>
           </div>
-
-          <p className="relative mt-6 font-ui text-[0.62rem] uppercase tracking-[0.24em] text-sepia/80 sm:text-[0.68rem]">
-            Municipalidad de Trancas · Edición 2026
-          </p>
         </div>
       </motion.div>
     </section>
