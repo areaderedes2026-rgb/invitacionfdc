@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
-import { extractYoutubeId, youtubeEmbedUrl, youtubeThumbUrl } from "@/lib/youtube";
+import { AudioUploadField } from "@/components/admin/audio-upload-field";
+import { youtubeEmbedUrl } from "@/lib/youtube";
 import type { SiteConfig } from "@/types";
 
 export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
@@ -42,8 +43,6 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
       setSaving(false);
     }
   };
-
-  const musicYoutubeId = extractYoutubeId(config.musica_url);
 
   return (
     <div className="space-y-8">
@@ -81,38 +80,19 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
         <div>
           <h3 className="font-display text-xl tracking-wide">Música</h3>
           <p className="mt-1 text-sm text-sepia">
-            Pegá el enlace de YouTube de la canción (también sirve YouTube Music
-            o youtu.be). El botón de volumen de la invitación la reproduce. Si
-            queda vacío, usa el ambiente suave.
+            YouTube no se puede usar acá: bloquea la reproducción en otras webs.
+            Subí un archivo MP3 desde tu PC (hasta 4 MB). Si queda vacío, el
+            botón usa el ambiente suave.
           </p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="musica_url">Enlace de YouTube o archivo mp3</Label>
-          <Input
-            id="musica_url"
-            value={config.musica_url}
-            placeholder="https://www.youtube.com/watch?v=... o https://youtu.be/..."
-            onChange={(e) => update("musica_url", e.target.value)}
-          />
-        </div>
-        {musicYoutubeId ? (
-          <div className="flex items-center gap-3 rounded-xl border border-ocre/15 bg-marfil p-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={youtubeThumbUrl(musicYoutubeId)}
-              alt=""
-              className="h-16 w-28 rounded-lg object-cover"
-            />
-            <p className="text-sm text-noche">
-              Canción reconocida. Guardá y, en la invitación, tocá el botón de
-              volumen para oírla.
-            </p>
-          </div>
-        ) : config.musica_url.trim() ? (
-          <p className="text-sm text-sepia">
-            Si no es YouTube, tiene que ser un archivo directo (mp3 u ogg).
-          </p>
-        ) : null}
+        <AudioUploadField
+          id="musica_url"
+          label="Canción de la invitación"
+          hint="MP3, OGG o M4A · máximo 4 MB"
+          folder="musica"
+          value={config.musica_url || ""}
+          onChange={(url) => update("musica_url", url)}
+        />
       </section>
 
       <section className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
