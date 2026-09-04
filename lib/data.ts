@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { DEFAULT_CONFIG } from "@/lib/default-content";
+import { asCartaFuente, clampCartaGrosor, clampCartaTamano } from "@/lib/carta-style";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { AccessLog, Confirmation, RsvpPayload, SiteConfig } from "@/types";
 
@@ -88,6 +89,9 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     bienvenida: asString(raw.bienvenida, DEFAULT_CONFIG.bienvenida),
     encabezado: asString(raw.encabezado, DEFAULT_CONFIG.encabezado),
     boton_abrir: asString(raw.boton_abrir, DEFAULT_CONFIG.boton_abrir),
+    carta_fuente: asCartaFuente(raw.carta_fuente),
+    carta_tamano: clampCartaTamano(raw.carta_tamano ?? DEFAULT_CONFIG.carta_tamano),
+    carta_grosor: clampCartaGrosor(raw.carta_grosor ?? DEFAULT_CONFIG.carta_grosor),
     evento_fondo_url: asString(raw.evento_fondo_url, DEFAULT_CONFIG.evento_fondo_url),
     evento_overlay: asNumber(raw.evento_overlay, DEFAULT_CONFIG.evento_overlay),
     evento_fecha_texto: asString(raw.evento_fecha_texto, DEFAULT_CONFIG.evento_fecha_texto),
@@ -149,6 +153,9 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       bienvenida: next.bienvenida,
       encabezado: next.encabezado,
       boton_abrir: next.boton_abrir,
+      carta_fuente: next.carta_fuente,
+      carta_tamano: next.carta_tamano,
+      carta_grosor: next.carta_grosor,
       evento_fondo_url: next.evento_fondo_url,
       evento_overlay: next.evento_overlay,
       evento_fecha_texto: next.evento_fecha_texto,
@@ -164,19 +171,27 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       updated_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase.from("configuracion").upsert(payload);
-    if (error) {
-      const missingNewColumns = /encabezado|boton_abrir/i.test(error.message);
-      if (missingNewColumns) {
-        const fallback = { ...payload } as Record<string, unknown>;
-        delete fallback.encabezado;
-        delete fallback.boton_abrir;
-        const retry = await supabase.from("configuracion").upsert(fallback);
-        if (retry.error) throw new Error(retry.error.message);
-        return next;
-      }
-      throw new Error(error.message);
+    const optional = [
+      "encabezado",
+      "boton_abrir",
+      "carta_fuente",
+      "carta_tamano",
+      "carta_grosor",
+    ];
+    let current: Record<string, unknown> = { ...payload };
+    let { error } = await supabase.from("configuracion").upsert(current);
+
+    for (let i = 0; i < optional.length && error; i++) {
+      const column = optional.find(
+        (name) => error?.message.includes(name) && name in current
+      );
+      if (!column) break;
+      delete current[column];
+      const retry = await supabase.from("configuracion").upsert(current);
+      error = retry.error;
     }
+
+    if (error) throw new Error(error.message);
     return next;
   }
 

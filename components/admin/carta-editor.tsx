@@ -7,6 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CARTA_FUENTES,
+  CARTA_GROSORES,
+  cartaBodyStyle,
+} from "@/lib/carta-style";
 import type { SiteConfig } from "@/types";
 
 export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
@@ -34,6 +39,7 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
   };
 
   const firmas = Array.isArray(config.firmas) ? config.firmas : [];
+  const body = cartaBodyStyle(config);
 
   return (
     <div className="space-y-8">
@@ -134,6 +140,89 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <p className="text-xs text-sepia">
             Un renglón vacío separa párrafos.
           </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="carta_fuente">Fuente del cuerpo</Label>
+            <select
+              id="carta_fuente"
+              className="flex h-12 w-full rounded-xl border border-ocre/30 bg-marfil/90 px-3 font-ui text-noche"
+              value={config.carta_fuente || "editorial"}
+              onChange={(e) =>
+                setConfig((prev) => ({ ...prev, carta_fuente: e.target.value }))
+              }
+            >
+              {CARTA_FUENTES.map((font) => (
+                <option key={font.id} value={font.id}>
+                  {font.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="carta_grosor">Grosor</Label>
+            <select
+              id="carta_grosor"
+              className="flex h-12 w-full rounded-xl border border-ocre/30 bg-marfil/90 px-3 font-ui text-noche disabled:opacity-50"
+              value={String(config.carta_grosor || 600)}
+              disabled={config.carta_fuente === "script"}
+              onChange={(e) =>
+                setConfig((prev) => ({
+                  ...prev,
+                  carta_grosor: Number(e.target.value),
+                }))
+              }
+            >
+              {CARTA_GROSORES.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+            {config.carta_fuente === "script" ? (
+              <p className="text-xs text-sepia">La manuscrita no admite negrita.</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="carta_tamano">
+              Tamaño: {config.carta_tamano || 18} px
+            </Label>
+            <input
+              id="carta_tamano"
+              type="range"
+              min={14}
+              max={32}
+              step={1}
+              value={config.carta_tamano || 18}
+              onChange={(e) =>
+                setConfig((prev) => ({
+                  ...prev,
+                  carta_tamano: Number(e.target.value),
+                }))
+              }
+              className="h-12 w-full cursor-pointer appearance-none rounded-full bg-noche/15 accent-ocre"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-ocre/20">
+          <p className="bg-noche/5 px-4 py-2 font-ui text-xs uppercase tracking-[0.18em] text-sepia">
+            Vista previa del cuerpo
+          </p>
+          <div className="max-h-[22rem] overflow-auto bg-marfil px-5 py-6 sm:px-8">
+            <div
+              className={`space-y-4 text-noche ${body.className}`}
+              style={body.style}
+            >
+              {(config.carta || "")
+                .split("\n\n")
+                .filter(Boolean)
+                .map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+            </div>
+          </div>
         </div>
       </section>
 

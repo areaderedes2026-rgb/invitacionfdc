@@ -6,6 +6,9 @@ export const DEFAULT_CONFIG: SiteConfig = {
   bienvenida: "Usted ha sido cordialmente invitado",
   encabezado: "Invitación oficial · Edición 2026",
   boton_abrir: "Abrir Invitación",
+  carta_fuente: "editorial",
+  carta_tamano: 18,
+  carta_grosor: 600,
   carta: `Es un honor para la Municipalidad de Trancas dirigirse a Ud. con el fin de invitarlo/a cordialmente a la XXVII Fiesta Nacional e Internacional del Caballo, celebración que reúne tradición, cultura y el prestigio de nuestra identidad gaucha.
 
 Durante cuatro jornadas, Trancas —Primer Pueblo Gaucho de la Argentina— abrirá sus puertas a autoridades, embajadores, funcionarios e invitados especiales para compartir actos protocolares, demostraciones ecuestres, expresiones del folclore nacional y el espíritu hospitalario que distingue a nuestra tierra.

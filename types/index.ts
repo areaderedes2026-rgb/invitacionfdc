@@ -66,6 +66,9 @@ export interface SiteConfig {
   bienvenida: string;
   encabezado: string;
   boton_abrir: string;
+  carta_fuente: string;
+  carta_tamano: number;
+  carta_grosor: number;
   evento_fondo_url: string;
   evento_overlay: number;
   evento_fecha_texto: string;

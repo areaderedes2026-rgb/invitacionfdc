@@ -2,6 +2,8 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { GoldRule, Ornament } from "@/components/shared/ornament";
+import { cartaBodyStyle } from "@/lib/carta-style";
+import { cn } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
 interface InstitutionalLetterProps {
@@ -16,6 +18,7 @@ export function InstitutionalLetter({
 }: InstitutionalLetterProps) {
   const reduced = useReducedMotion();
   const paragraphs = config.carta.split("\n\n").filter(Boolean);
+  const body = cartaBodyStyle(config);
 
   return (
     <section
@@ -66,7 +69,10 @@ export function InstitutionalLetter({
             <Ornament className="my-6 sm:my-8" />
           </motion.div>
 
-          <div className="space-y-5 font-editorial text-base font-semibold leading-7 text-noche sm:space-y-6 sm:text-lg sm:leading-8 md:text-xl md:leading-9">
+          <div
+            className={cn("space-y-5 text-noche sm:space-y-6", body.className)}
+            style={body.style}
+          >
             {paragraphs.map((paragraph, index) => (
               <motion.p
                 key={index}

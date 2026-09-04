@@ -25,6 +25,9 @@ create table if not exists public.configuracion (
   bienvenida text,
   encabezado text,
   boton_abrir text,
+  carta_fuente text default 'editorial',
+  carta_tamano integer default 18,
+  carta_grosor integer default 600,
   evento_fondo_url text,
   evento_overlay integer default 58,
   evento_fecha_texto text default '',
@@ -95,6 +98,9 @@ alter table public.configuracion add column if not exists cronograma_overlay int
 alter table public.configuracion add column if not exists cronograma_titulo text default '';
 alter table public.configuracion add column if not exists encabezado text default '';
 alter table public.configuracion add column if not exists boton_abrir text default '';
+alter table public.configuracion add column if not exists carta_fuente text default 'editorial';
+alter table public.configuracion add column if not exists carta_tamano integer default 18;
+alter table public.configuracion add column if not exists carta_grosor integer default 600;
 
 -- Bucket público para logos y fondos subidos desde el admin.
 insert into storage.buckets (id, name, public)
