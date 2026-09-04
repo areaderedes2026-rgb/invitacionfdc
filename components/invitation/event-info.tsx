@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { CoverMedia } from "@/components/shared/cover-media";
 import { useEffect, useMemo, useState } from "react";
 import { GoldRule } from "@/components/shared/ornament";
 import { formatEventDateRange, formatEventTime } from "@/lib/utils";
@@ -61,14 +61,9 @@ export function EventInfo({
             className="absolute inset-[-8%]"
             data-kenburns={preview ? undefined : true}
           >
-            <Image
+            <CoverMedia
               src={imageSrc}
-              alt=""
-              fill
               priority={!preview}
-              className="object-cover object-center"
-              sizes="100vw"
-              quality={85}
               onError={() => setBrokenImage(true)}
             />
           </div>

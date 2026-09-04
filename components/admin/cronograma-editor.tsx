@@ -96,7 +96,7 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
         </Button>
       </div>
 
-      <div className="space-y-5 rounded-2xl border border-gold/20 bg-cream p-6">
+      <div className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
         <div>
           <h3 className="font-display text-xl tracking-wide">Fondo de la sección</h3>
           <p className="mt-1 text-sm text-sepia">
@@ -170,7 +170,7 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
         {config.cronograma.map((item, index) => (
           <div
             key={item.id || index}
-            className="rounded-2xl border border-gold/20 bg-cream p-5"
+            className="rounded-2xl border border-ocre/20 bg-white p-5 shadow-sm"
           >
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm font-medium text-wine">Ítem {index + 1}</p>
@@ -185,7 +185,49 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
               </Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              {EVENT_FIELDS.map((field) => (
+              {EVENT_FIELDS.map((field) => {
+                if (field.key === "dia") {
+                  return (
+                    <div key={field.key} className="space-y-2">
+                      <Label>Día</Label>
+                      <select
+                        className="flex h-12 w-full rounded-xl border border-ocre/30 bg-marfil/90 px-3 font-ui text-noche"
+                        value={item.dia}
+                        onChange={(e) => updateItem(index, "dia", e.target.value)}
+                      >
+                        {["Jueves", "Viernes", "Sábado", "Domingo"].map((day) => (
+                          <option key={day} value={day}>
+                            {day}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                }
+                if (field.key === "tipo") {
+                  return (
+                    <div key={field.key} className="space-y-2">
+                      <Label>Tipo</Label>
+                      <select
+                        className="flex h-12 w-full rounded-xl border border-ocre/30 bg-marfil/90 px-3 font-ui text-noche"
+                        value={item.tipo}
+                        onChange={(e) =>
+                          updateItem(
+                            index,
+                            "tipo",
+                            e.target.value as CronogramaEvento["tipo"]
+                          )
+                        }
+                      >
+                        <option value="oficial">Oficial</option>
+                        <option value="artistico">Artístico</option>
+                        <option value="tradicional">Tradicional</option>
+                        <option value="protocolar">Protocolar</option>
+                      </select>
+                    </div>
+                  );
+                }
+                return (
                 <div
                   key={field.key}
                   className={field.type === "textarea" ? "space-y-2 md:col-span-2" : "space-y-2"}
@@ -203,7 +245,8 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
                     />
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}

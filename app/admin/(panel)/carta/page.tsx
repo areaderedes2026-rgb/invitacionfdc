@@ -11,12 +11,12 @@ export default async function AdminCartaPage() {
     <div className="space-y-12">
       <ConfigEditor
         initialConfig={config}
-        title="Carta institucional"
-        description="Texto editable de la carta diplomática mostrada en la invitación."
+        title="Inicio y carta"
+        description="Portada (antes de abrir), título del pie y el texto de la carta institucional."
         fields={[
-          { key: "bienvenida", label: "Texto de bienvenida" },
-          { key: "titulo", label: "Título principal" },
-          { key: "subtitulo", label: "Subtítulo" },
+          { key: "bienvenida", label: "Saludo de la portada" },
+          { key: "titulo", label: "Título (aparece en el pie)" },
+          { key: "subtitulo", label: "Subtítulo (portada, carta y pie)" },
           { key: "carta", label: "Cuerpo de la carta", type: "textarea" },
         ]}
       />
@@ -25,7 +25,7 @@ export default async function AdminCartaPage() {
         initialConfig={config}
         listKey="firmas"
         title="Firmas"
-        description="Autoridades firmantes de la carta."
+        description="Se muestran al pie de la carta, en dos columnas."
         createItem={() => ({
           nombre: "Nueva autoridad",
           cargo: "Cargo institucional",

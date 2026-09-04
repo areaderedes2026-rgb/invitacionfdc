@@ -49,14 +49,23 @@ export function WelcomeScreen({ config }: { config: SiteConfig }) {
           <GoldRule className="relative my-5 w-28 sm:my-6 sm:w-36" />
 
           <div className="relative mx-auto h-[12.5rem] w-full max-w-[15.5rem] sm:h-[16rem] sm:max-w-[19rem] md:h-[18rem] md:max-w-[21rem]">
-            <Image
-              src={config.logo_fiesta}
-              alt="Logo oficial XXVII Fiesta Nacional e Internacional del Caballo · Edición 2026"
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 248px, 336px"
-              priority
-            />
+            {/^https?:\/\//i.test(config.logo_fiesta) ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={config.logo_fiesta}
+                alt="Logo oficial XXVII Fiesta Nacional e Internacional del Caballo"
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <Image
+                src={config.logo_fiesta || "/images/brand/logo-oficial.png"}
+                alt="Logo oficial XXVII Fiesta Nacional e Internacional del Caballo"
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 248px, 336px"
+                priority
+              />
+            )}
           </div>
 
           <p className="relative mt-4 font-editorial text-base italic text-ink-soft sm:text-lg">

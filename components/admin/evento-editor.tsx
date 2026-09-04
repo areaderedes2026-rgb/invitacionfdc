@@ -45,13 +45,19 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="font-display text-3xl tracking-wide">Información del evento</h2>
+        <p className="font-ui text-[0.65rem] uppercase tracking-[0.28em] text-ocre">
+          Invitación pública
+        </p>
+        <h2 className="mt-1 font-display text-3xl tracking-wide text-noche">
+          Evento y mapa
+        </h2>
         <p className="mt-2 text-sm text-sepia">
-          Fecha, hora, lugar y el fondo visual de esa sección.
+          Fecha, hora, lugar, cuenta regresiva y cómo llegar. Lo que no está acá
+          no se muestra en la invitación.
         </p>
       </div>
 
-      <div className="space-y-5 rounded-2xl border border-gold/20 bg-cream p-6">
+      <div className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
         <div>
           <h3 className="font-display text-xl tracking-wide">Bloque fecha, hora y lugar</h3>
           <p className="mt-1 text-sm text-sepia">
@@ -132,10 +138,19 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <EventInfo config={config} preview />
           </div>
         </div>
+
+        <Button type="button" variant="admin" onClick={() => void save()} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Guardar cambios
+        </Button>
       </div>
 
-      <div className="space-y-5 rounded-2xl border border-gold/20 bg-cream p-6">
-        <h3 className="font-display text-xl tracking-wide">Datos institucionales</h3>
+        <div className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
+        <h3 className="font-display text-xl tracking-wide">Cuenta regresiva y mapa</h3>
+        <p className="text-sm text-sepia">
+          La cuenta regresiva usa la fecha de inicio. El mapa de “Cómo llegar”
+          solo muestra ubicación, el mapa y el botón.
+        </p>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -169,17 +184,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="horarios">Horarios</Label>
-          <Textarea
-            id="horarios"
-            rows={3}
-            value={config.horarios}
-            onChange={(e) => update("horarios", e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="ubicacion">Lugar</Label>
+          <Label htmlFor="ubicacion">Lugar (si no hay texto de lugar arriba)</Label>
           <Input
             id="ubicacion"
             value={config.ubicacion}
@@ -188,7 +193,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="ubicacion_detalle">Detalle de ubicación</Label>
+          <Label htmlFor="ubicacion_detalle">Detalle bajo el lugar</Label>
           <Input
             id="ubicacion_detalle"
             value={config.ubicacion_detalle}
@@ -197,7 +202,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="mapa_url">URL Cómo llegar</Label>
+          <Label htmlFor="mapa_url">Enlace del botón Cómo llegar</Label>
           <Input
             id="mapa_url"
             value={config.mapa_url}
@@ -215,27 +220,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="accesos">Accesos</Label>
-          <Textarea
-            id="accesos"
-            rows={3}
-            value={config.accesos}
-            onChange={(e) => update("accesos", e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="info_protocolar">Información protocolar</Label>
-          <Textarea
-            id="info_protocolar"
-            rows={4}
-            value={config.info_protocolar}
-            onChange={(e) => update("info_protocolar", e.target.value)}
-          />
-        </div>
-
-        <Button type="button" variant="admin" onClick={save} disabled={saving}>
+        <Button type="button" variant="admin" onClick={() => void save()} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Guardar cambios
         </Button>

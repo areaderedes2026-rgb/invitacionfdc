@@ -54,13 +54,16 @@ export function ConfigEditor({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-3xl tracking-wide">{title}</h2>
+        <p className="font-ui text-[0.65rem] uppercase tracking-[0.28em] text-ocre">
+          Invitación pública
+        </p>
+        <h2 className="mt-1 font-display text-3xl tracking-wide text-noche">{title}</h2>
         {description ? (
           <p className="mt-2 text-sm text-sepia">{description}</p>
         ) : null}
       </div>
 
-      <div className="space-y-5 rounded-2xl border border-gold/20 bg-cream p-6">
+      <div className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
         {fields.map((field) => {
           const value = String(config[field.key] ?? "");
           return (

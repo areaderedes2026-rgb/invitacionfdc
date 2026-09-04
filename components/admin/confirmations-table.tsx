@@ -96,7 +96,7 @@ export function ConfirmationsTable({
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-gold/20 bg-cream p-4 md:flex-row md:items-center">
+      <div className="flex flex-col gap-3 rounded-2xl border border-ocre/20 bg-white p-4 md:flex-row md:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sepia" />
           <Input
@@ -139,7 +139,7 @@ export function ConfirmationsTable({
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-gold/20 bg-cream">
+      <div className="overflow-x-auto rounded-2xl border border-ocre/20 bg-white">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-gold/20 bg-parchment-deep/50">
             <tr>
@@ -182,7 +182,7 @@ export function ConfirmationsTable({
         </table>
       </div>
 
-      <div className="rounded-2xl border border-gold/20 bg-cream p-5">
+      <div className="rounded-2xl border border-ocre/20 bg-white p-5 shadow-sm">
         <h3 className="font-display text-xl">Últimos accesos a enlaces</h3>
         <ul className="mt-4 space-y-2 text-sm">
           {accessLogs.slice(0, 12).map((log) => (

@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Clock } from "lucide-react";
+import { CoverMedia } from "@/components/shared/cover-media";
 import { cn } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
@@ -76,14 +76,9 @@ export function Timeline({
             className="absolute inset-[-8%]"
             data-kenburns={preview ? undefined : true}
           >
-            <Image
+            <CoverMedia
               src={imageSrc}
-              alt=""
-              fill
               priority={!preview}
-              className="object-cover object-center"
-              sizes="100vw"
-              quality={85}
               onError={() => setBrokenImage(true)}
             />
           </div>

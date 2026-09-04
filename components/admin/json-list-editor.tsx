@@ -17,7 +17,7 @@ interface JsonListEditorProps {
   title: string;
   description?: string;
   createItem: () => Record<string, unknown>;
-  fields: { key: string; label: string; type?: "text" | "textarea" }[];
+  fields: { key: string; label: string; type?: "text" | "textarea" | "checkbox" }[];
 }
 
 export function JsonListEditor({
@@ -32,7 +32,7 @@ export function JsonListEditor({
   const [saving, setSaving] = useState(false);
   const items = config[listKey] as Record<string, unknown>[];
 
-  const updateItem = (index: number, key: string, value: string) => {
+  const updateItem = (index: number, key: string, value: string | boolean) => {
     setConfig((prev) => {
       const next = [...(prev[listKey] as Record<string, unknown>[])];
       next[index] = { ...next[index], [key]: value };
@@ -96,7 +96,7 @@ export function JsonListEditor({
         {items.map((item, index) => (
           <div
             key={String(item.id || index)}
-            className="rounded-2xl border border-gold/20 bg-cream p-5"
+            className="rounded-2xl border border-ocre/20 bg-white p-5 shadow-sm"
           >
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm font-medium text-wine">Ítem {index + 1}</p>
@@ -117,7 +117,18 @@ export function JsonListEditor({
                   className={field.type === "textarea" ? "md:col-span-2 space-y-2" : "space-y-2"}
                 >
                   <Label>{field.label}</Label>
-                  {field.type === "textarea" ? (
+                  {field.type === "checkbox" ? (
+                    <label className="flex min-h-12 items-center gap-3 rounded-xl border border-ocre/30 bg-marfil/90 px-3">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(item[field.key])}
+                        onChange={(e) =>
+                          updateItem(index, field.key, e.target.checked)
+                        }
+                      />
+                      <span className="text-sm">{field.label}</span>
+                    </label>
+                  ) : field.type === "textarea" ? (
                     <Textarea
                       value={String(item[field.key] ?? "")}
                       onChange={(e) => updateItem(index, field.key, e.target.value)}

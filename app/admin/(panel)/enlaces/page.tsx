@@ -24,10 +24,11 @@ export default async function AdminEnlacesPage() {
           { key: "slug", label: "Slug (sin espacios)" },
           { key: "etiqueta", label: "Etiqueta" },
           { key: "descripcion", label: "Descripción", type: "textarea" },
+          { key: "activo", label: "Visible en tracking", type: "checkbox" },
         ]}
       />
 
-      <div className="rounded-2xl border border-gold/20 bg-cream p-5 text-sm text-sepia">
+      <div className="rounded-2xl border border-ocre/20 bg-white p-5 text-sm text-sepia shadow-sm">
         <p className="font-medium text-ink">Ejemplos activos:</p>
         <ul className="mt-3 list-disc space-y-1 pl-5">
           {config.enlaces.map((link) => (
