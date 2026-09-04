@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Fiesta del Caballo",
   },
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "512x512" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180" }],
+  },
   formatDetection: {
     telephone: false,
   },
