@@ -5,14 +5,8 @@ import { useReducedMotion } from "framer-motion";
 import { Clock } from "lucide-react";
 import { CoverMedia } from "@/components/shared/cover-media";
 import { cn } from "@/lib/utils";
+import { dayShortLabel, groupCronogramaDays } from "@/lib/cronograma";
 import type { SiteConfig } from "@/types";
-
-const DAY_SHORT: Record<string, string> = {
-  Jueves: "Jue",
-  Viernes: "Vie",
-  Sábado: "Sáb",
-  Domingo: "Dom",
-};
 
 function dayNumber(fecha: string) {
   const day = fecha.split("-")[2];
@@ -48,22 +42,13 @@ export function Timeline({
     setBrokenImage(false);
   }, [imageSrc]);
 
-  const days = useMemo(() => {
-    const map = new Map<string, typeof config.cronograma>();
-    const items = Array.isArray(config.cronograma) ? config.cronograma : [];
-    for (const event of items) {
-      const key = `${event.dia}|${event.fecha}`;
-      const list = map.get(key) || [];
-      list.push(event);
-      map.set(key, list);
-    }
-    return Array.from(map.entries()).map(([key, events]) => {
-      const [dia, fecha] = key.split("|");
-      return { dia, fecha, events };
-    });
-  }, [config]);
+  const days = useMemo(
+    () => groupCronogramaDays(config.cronograma),
+    [config.cronograma]
+  );
 
   const [active, setActive] = useState(0);
+  const safeActive = days.length === 0 ? 0 : Math.min(active, days.length - 1);
 
   return (
     <section
@@ -105,19 +90,24 @@ export function Timeline({
           {title}
         </h2>
 
+        {days.length > 0 ? (
         <div
-          className="mt-8 grid grid-cols-4 overflow-hidden rounded-lg border border-marfil/20 sm:mt-10"
+          className="mt-8 overflow-x-auto rounded-lg border border-marfil/20 sm:mt-10"
           role="tablist"
-          aria-label="Días del festival"
+          aria-label="Días del cronograma"
           data-gsap={preview ? undefined : "fade-in"}
           data-gsap-delay={preview ? undefined : "0.12"}
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${days.length}, minmax(${days.length > 4 ? "5rem" : "0px"}, 1fr))`,
+          }}
         >
           {days.map((day, index) => {
-            const selected = active === index;
+            const selected = safeActive === index;
             const number = dayNumber(day.fecha);
             return (
               <button
-                key={`${day.dia}-${day.fecha}`}
+                key={`${day.dia}-${day.fecha}-${index}`}
                 type="button"
                 role="tab"
                 id={`dia-tab-${index}`}
@@ -133,22 +123,25 @@ export function Timeline({
                 onClick={() => setActive(index)}
               >
                 <span className="sm:hidden">
-                  {DAY_SHORT[day.dia] || day.dia.slice(0, 3)} {number}
+                  {dayShortLabel(day.dia)}
+                  {number && number !== "0" ? ` ${number}` : ""}
                 </span>
                 <span className="hidden sm:inline">
-                  {day.dia} {number}
+                  {day.dia}
+                  {number && number !== "0" ? ` ${number}` : ""}
                 </span>
               </button>
             );
           })}
         </div>
+        ) : null}
 
         <div className="mt-2 grid">
           {days.map((day, dayIndex) => {
-            const selected = active === dayIndex;
+            const selected = safeActive === dayIndex;
             return (
               <ul
-                key={`${day.dia}-${day.fecha}`}
+                key={`${day.dia}-${day.fecha}-${dayIndex}`}
                 id={`cronograma-panel-${dayIndex}`}
                 role="tabpanel"
                 aria-labelledby={`dia-tab-${dayIndex}`}
@@ -166,7 +159,7 @@ export function Timeline({
               >
                 {day.events.map((event, index) => (
                   <li
-                    key={event.id}
+                    key={event.id || `${dayIndex}-${index}`}
                     className={cn(
                       "flex items-start gap-3 py-5 sm:items-center sm:gap-4 sm:py-6",
                       index > 0 ? "border-t border-marfil/15" : ""

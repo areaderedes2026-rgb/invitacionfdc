@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { Timeline } from "@/components/invitation/timeline";
@@ -9,76 +9,193 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  toTimeInput,
+  weekdayFromIso,
+} from "@/lib/cronograma";
 import type { CronogramaEvento, SiteConfig } from "@/types";
 
-const EVENT_FIELDS: { key: keyof CronogramaEvento; label: string; type?: "textarea" }[] = [
-  { key: "dia", label: "Día" },
-  { key: "fecha", label: "Fecha (YYYY-MM-DD)" },
-  { key: "hora", label: "Hora" },
-  { key: "titulo", label: "Título" },
-  { key: "tipo", label: "Tipo (oficial|artistico|tradicional|protocolar)" },
-  { key: "descripcion", label: "Descripción", type: "textarea" },
-];
+type ActivityDraft = {
+  id: string;
+  hora: string;
+  titulo: string;
+  descripcion: string;
+  tipo: CronogramaEvento["tipo"];
+};
 
-function createEvent(): CronogramaEvento {
+type DayDraft = {
+  id: string;
+  dia: string;
+  fecha: string;
+  activities: ActivityDraft[];
+};
+
+function eventsToDays(events: CronogramaEvento[]): DayDraft[] {
+  const list = Array.isArray(events) ? events : [];
+  const map = new Map<string, DayDraft>();
+  const order: string[] = [];
+
+  for (const event of list) {
+    const dia = event.dia?.trim() || weekdayFromIso(event.fecha) || "";
+    const fecha = event.fecha?.trim() || "";
+    const key = `${dia}|${fecha}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        id: crypto.randomUUID(),
+        dia,
+        fecha,
+        activities: [],
+      });
+      order.push(key);
+    }
+    map.get(key)!.activities.push({
+      id: event.id || crypto.randomUUID(),
+      hora: toTimeInput(event.hora) || "10:00",
+      titulo: event.titulo || "",
+      descripcion: event.descripcion || "",
+      tipo: event.tipo || "oficial",
+    });
+  }
+
+  return order.map((key) => map.get(key)!);
+}
+
+function daysToEvents(days: DayDraft[]): CronogramaEvento[] {
+  return days.flatMap((day) =>
+    day.activities.map((activity) => ({
+      id: activity.id,
+      dia: day.dia.trim() || weekdayFromIso(day.fecha) || "Día",
+      fecha: day.fecha.trim(),
+      hora: activity.hora || "00:00",
+      titulo: activity.titulo.trim() || "Actividad",
+      descripcion: activity.descripcion.trim(),
+      tipo: activity.tipo || "oficial",
+    }))
+  );
+}
+
+function createActivity(): ActivityDraft {
   return {
     id: crypto.randomUUID(),
-    dia: "Jueves",
-    fecha: "2026-10-08",
-    hora: "21:00",
-    titulo: "Nuevo evento",
-    descripcion: "Descripción del evento",
+    hora: "10:00",
+    titulo: "",
+    descripcion: "",
     tipo: "oficial",
   };
 }
 
 export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
   const [config, setConfig] = useState(initialConfig);
+  const [days, setDays] = useState<DayDraft[]>(() =>
+    eventsToDays(initialConfig.cronograma)
+  );
   const [saving, setSaving] = useState(false);
-  const events = Array.isArray(config.cronograma) ? config.cronograma : [];
+  const [newDia, setNewDia] = useState("");
+  const [newFecha, setNewFecha] = useState("");
+
+  const previewConfig = useMemo(
+    () => ({ ...config, cronograma: daysToEvents(days) }),
+    [config, days]
+  );
 
   const update = <K extends keyof SiteConfig>(key: K, value: SiteConfig[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateItem = (index: number, key: keyof CronogramaEvento, value: string) => {
-    setConfig((prev) => {
-      const list = Array.isArray(prev.cronograma) ? prev.cronograma : [];
-      const next = [...list];
-      next[index] = { ...next[index], [key]: value } as CronogramaEvento;
-      return { ...prev, cronograma: next };
-    });
+  const addDay = () => {
+    if (!newFecha) {
+      toast.error("Elegí la fecha del día.");
+      return;
+    }
+    const dia = newDia.trim() || weekdayFromIso(newFecha) || "Día";
+    setDays((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        dia,
+        fecha: newFecha,
+        activities: [createActivity()],
+      },
+    ]);
+    setNewDia("");
+    setNewFecha("");
+    toast.success(`Día agregado: ${dia}`);
   };
 
-  const addItem = () => {
-    setConfig((prev) => ({
-      ...prev,
-      cronograma: [...(Array.isArray(prev.cronograma) ? prev.cronograma : []), createEvent()],
-    }));
+  const updateDay = (dayId: string, patch: Partial<Pick<DayDraft, "dia" | "fecha">>) => {
+    setDays((prev) =>
+      prev.map((day) => (day.id === dayId ? { ...day, ...patch } : day))
+    );
   };
 
-  const removeItem = (index: number) => {
-    setConfig((prev) => ({
-      ...prev,
-      cronograma: (Array.isArray(prev.cronograma) ? prev.cronograma : []).filter(
-        (_, i) => i !== index
-      ),
-    }));
+  const removeDay = (dayId: string) => {
+    setDays((prev) => prev.filter((day) => day.id !== dayId));
+  };
+
+  const addActivity = (dayId: string) => {
+    setDays((prev) =>
+      prev.map((day) =>
+        day.id === dayId
+          ? { ...day, activities: [...day.activities, createActivity()] }
+          : day
+      )
+    );
+  };
+
+  const updateActivity = (
+    dayId: string,
+    activityId: string,
+    patch: Partial<ActivityDraft>
+  ) => {
+    setDays((prev) =>
+      prev.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              activities: day.activities.map((activity) =>
+                activity.id === activityId ? { ...activity, ...patch } : activity
+              ),
+            }
+          : day
+      )
+    );
+  };
+
+  const removeActivity = (dayId: string, activityId: string) => {
+    setDays((prev) =>
+      prev.map((day) =>
+        day.id === dayId
+          ? {
+              ...day,
+              activities: day.activities.filter((activity) => activity.id !== activityId),
+            }
+          : day
+      )
+    );
   };
 
   const save = async () => {
+    const cronograma = daysToEvents(days);
+    const emptyDay = days.find((day) => !day.fecha.trim());
+    if (emptyDay) {
+      toast.error("Cada día necesita una fecha.");
+      return;
+    }
+
     setSaving(true);
     try {
+      const payload = { ...config, cronograma };
       const res = await fetch("/api/admin/config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Error al guardar");
       }
-      toast.success("Cambios guardados");
+      setConfig(payload);
+      toast.success("Cronograma guardado");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al guardar");
     } finally {
@@ -90,12 +207,16 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-3xl tracking-wide">Cronograma</h2>
-          <p className="mt-2 text-sm text-sepia">
-            Fondo, overlay y actividades de cada día.
+          <p className="font-ui text-[0.65rem] uppercase tracking-[0.28em] text-ocre">
+            Invitación pública
+          </p>
+          <h2 className="mt-1 font-display text-3xl tracking-wide">Cronograma</h2>
+          <p className="mt-2 max-w-2xl text-sm text-sepia">
+            Creá los días que quieras y, adentro de cada uno, las actividades con
+            su horario. Después podés editarlas o borrarlas.
           </p>
         </div>
-        <Button type="button" variant="admin" onClick={save} disabled={saving}>
+        <Button type="button" variant="admin" onClick={() => void save()} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Guardar cambios
         </Button>
@@ -133,10 +254,6 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
             onChange={(e) => update("cronograma_overlay", Number(e.target.value))}
             className="h-2 w-full cursor-pointer appearance-none rounded-full bg-noche/15 accent-ocre"
           />
-          <p className="text-xs text-sepia">
-            0 deja ver la foto completa. 100 cubre casi toda la imagen para que
-            el texto se lea mejor.
-          </p>
         </div>
 
         <div className="space-y-2">
@@ -154,109 +271,195 @@ export function CronogramaEditor({ initialConfig }: { initialConfig: SiteConfig 
             Vista previa
           </p>
           <div className="max-h-[28rem] overflow-auto">
-            <Timeline config={config} preview />
+            <Timeline config={previewConfig} preview />
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h3 className="font-display text-xl tracking-wide">Actividades</h3>
-        <Button type="button" variant="outline" onClick={addItem}>
-          <Plus className="h-4 w-4" />
-          Agregar
-        </Button>
-      </div>
-
-      <div className="space-y-4">
-        {events.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-ocre/30 bg-white px-5 py-10 text-center text-sm text-sepia">
-            Todavía no hay actividades. Agregá una y guardá.
+      <section className="space-y-4 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
+        <div>
+          <h3 className="font-display text-xl tracking-wide">Agregar un día</h3>
+          <p className="mt-1 text-sm text-sepia">
+            Poné el nombre y la fecha. Si el nombre queda vacío, se completa
+            solo (Lunes, Martes, etc.).
           </p>
-        ) : null}
-        {events.map((item, index) => (
-          <div
-            key={item.id || index}
-            className="rounded-2xl border border-ocre/20 bg-white p-5 shadow-sm"
+        </div>
+        <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <div className="space-y-2">
+            <Label htmlFor="nuevo_dia">Nombre del día</Label>
+            <Input
+              id="nuevo_dia"
+              value={newDia}
+              placeholder="Lunes"
+              onChange={(e) => setNewDia(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="nueva_fecha">Fecha</Label>
+            <Input
+              id="nueva_fecha"
+              type="date"
+              value={newFecha}
+              onChange={(e) => {
+                const value = e.target.value;
+                setNewFecha(value);
+                if (!newDia.trim() && value) setNewDia(weekdayFromIso(value));
+              }}
+            />
+          </div>
+          <Button type="button" variant="outline" className="rounded-lg" onClick={addDay}>
+            <Plus className="h-4 w-4" />
+            Agregar día
+          </Button>
+        </div>
+      </section>
+
+      {days.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-ocre/30 bg-white px-5 py-10 text-center text-sm text-sepia">
+          Todavía no hay días. Agregá el primero arriba.
+        </p>
+      ) : null}
+
+      <div className="space-y-6">
+        {days.map((day, dayIndex) => (
+          <section
+            key={day.id}
+            className="space-y-4 rounded-2xl border border-ocre/20 bg-white p-5 shadow-sm sm:p-6"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm font-medium text-wine">Ítem {index + 1}</p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-ui text-[0.62rem] uppercase tracking-[0.22em] text-ocre">
+                  Día {dayIndex + 1}
+                </p>
+                <h3 className="mt-1 font-display text-xl tracking-wide text-noche">
+                  {day.dia || "Sin nombre"}
+                  {day.fecha ? ` · ${day.fecha.slice(8, 10)}` : ""}
+                </h3>
+              </div>
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
-                onClick={() => removeItem(index)}
-                aria-label="Eliminar ítem"
+                className="text-noche"
+                onClick={() => removeDay(day.id)}
               >
-                <Trash2 className="h-4 w-4 text-wine" />
+                <Trash2 className="h-4 w-4" />
+                Borrar día
               </Button>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {EVENT_FIELDS.map((field) => {
-                if (field.key === "dia") {
-                  return (
-                    <div key={field.key} className="space-y-2">
-                      <Label>Día</Label>
-                      <select
-                        className="flex h-12 w-full rounded-xl border border-ocre/30 bg-marfil/90 px-3 font-ui text-noche"
-                        value={item.dia}
-                        onChange={(e) => updateItem(index, "dia", e.target.value)}
-                      >
-                        {["Jueves", "Viernes", "Sábado", "Domingo"].map((day) => (
-                          <option key={day} value={day}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                }
-                if (field.key === "tipo") {
-                  return (
-                    <div key={field.key} className="space-y-2">
-                      <Label>Tipo</Label>
-                      <select
-                        className="flex h-12 w-full rounded-xl border border-ocre/30 bg-marfil/90 px-3 font-ui text-noche"
-                        value={item.tipo}
-                        onChange={(e) =>
-                          updateItem(
-                            index,
-                            "tipo",
-                            e.target.value as CronogramaEvento["tipo"]
-                          )
-                        }
-                      >
-                        <option value="oficial">Oficial</option>
-                        <option value="artistico">Artístico</option>
-                        <option value="tradicional">Tradicional</option>
-                        <option value="protocolar">Protocolar</option>
-                      </select>
-                    </div>
-                  );
-                }
-                return (
-                <div
-                  key={field.key}
-                  className={field.type === "textarea" ? "space-y-2 md:col-span-2" : "space-y-2"}
-                >
-                  <Label>{field.label}</Label>
-                  {field.type === "textarea" ? (
-                    <Textarea
-                      value={String(item[field.key] ?? "")}
-                      onChange={(e) => updateItem(index, field.key, e.target.value)}
-                    />
-                  ) : (
-                    <Input
-                      value={String(item[field.key] ?? "")}
-                      onChange={(e) => updateItem(index, field.key, e.target.value)}
-                    />
-                  )}
-                </div>
-                );
-              })}
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Nombre del día</Label>
+                <Input
+                  value={day.dia}
+                  placeholder="Lunes"
+                  onChange={(e) => updateDay(day.id, { dia: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Fecha</Label>
+                <Input
+                  type="date"
+                  value={day.fecha}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    updateDay(day.id, {
+                      fecha: value,
+                      dia: day.dia.trim() ? day.dia : weekdayFromIso(value),
+                    });
+                  }}
+                />
+              </div>
             </div>
-          </div>
+
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-medium text-noche">
+                  Actividades ({day.activities.length})
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-lg"
+                  onClick={() => addActivity(day.id)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Agregar actividad
+                </Button>
+              </div>
+
+              {day.activities.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-ocre/30 px-4 py-6 text-center text-sm text-sepia">
+                  Este día no tiene actividades. Agregá una.
+                </p>
+              ) : null}
+
+              {day.activities.map((activity, activityIndex) => (
+                <div
+                  key={activity.id}
+                  className="space-y-3 rounded-xl border border-ocre/15 bg-marfil/60 p-4"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs uppercase tracking-[0.16em] text-sepia">
+                      Actividad {activityIndex + 1}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Eliminar actividad"
+                      onClick={() => removeActivity(day.id, activity.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-noche" />
+                    </Button>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-[8.5rem_1fr]">
+                    <div className="space-y-2">
+                      <Label>Hora</Label>
+                      <Input
+                        type="time"
+                        value={activity.hora}
+                        onChange={(e) =>
+                          updateActivity(day.id, activity.id, { hora: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Actividad</Label>
+                      <Input
+                        value={activity.titulo}
+                        placeholder="Apertura, acto, show..."
+                        onChange={(e) =>
+                          updateActivity(day.id, activity.id, { titulo: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Nota (opcional, no se muestra en la invitación)</Label>
+                    <Textarea
+                      rows={2}
+                      value={activity.descripcion}
+                      onChange={(e) =>
+                        updateActivity(day.id, activity.id, {
+                          descripcion: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         ))}
       </div>
+
+      {days.length > 0 ? (
+        <Button type="button" variant="admin" onClick={() => void save()} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Guardar cambios
+        </Button>
+      ) : null}
     </div>
   );
 }
