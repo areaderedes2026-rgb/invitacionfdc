@@ -66,7 +66,7 @@ export function InstitutionalLetter({
             <Ornament className="my-6 sm:my-8" />
           </motion.div>
 
-          <div className="space-y-5 font-editorial text-base leading-7 text-ink-soft sm:space-y-6 sm:text-lg sm:leading-8 md:text-xl md:leading-9">
+          <div className="space-y-5 font-editorial text-base font-semibold leading-7 text-noche sm:space-y-6 sm:text-lg sm:leading-8 md:text-xl md:leading-9">
             {paragraphs.map((paragraph, index) => (
               <motion.p
                 key={index}
