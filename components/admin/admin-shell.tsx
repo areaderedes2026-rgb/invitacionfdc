@@ -64,76 +64,75 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
-  return (
-    <div className="min-h-dvh bg-marfil font-ui text-noche">
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-ocre/15 bg-noche px-4 py-3 text-marfil lg:hidden">
-        <div>
-          <p className="font-ui text-[0.58rem] uppercase tracking-[0.22em] text-arena">
-            Admin
-          </p>
-          <p className="font-display text-sm tracking-wide">Fiesta del Caballo</p>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="text-marfil hover:bg-white/10"
-          aria-label={open ? "Cerrar menú" : "Abrir menú"}
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-      </header>
+  const SidebarFooter = () => (
+    <div className="space-y-3">
+      <a
+        href="/"
+        target="_blank"
+        rel="noreferrer"
+        className="block px-3 font-ui text-xs text-marfil/50 underline-offset-4 hover:text-arena hover:underline"
+      >
+        Ver invitación
+      </a>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full justify-start rounded-lg border-marfil/20 text-marfil hover:bg-white/10"
+        onClick={() => void logout()}
+      >
+        <LogOut className="h-4 w-4" />
+        Cerrar sesión
+      </Button>
+    </div>
+  );
 
-      {open ? (
-        <div className="fixed inset-0 z-30 bg-noche/95 px-4 pb-8 pt-20 lg:hidden">
-          <NavLinks onNavigate={() => setOpen(false)} />
+  return (
+    <div className="flex min-h-dvh w-full items-stretch bg-marfil font-ui text-noche">
+      <aside className="hidden w-64 shrink-0 flex-col bg-noche p-5 text-marfil lg:flex lg:min-h-dvh">
+        <div className="mb-8">
+          <p className="font-ui text-[0.62rem] uppercase tracking-[0.28em] text-arena">
+            Panel admin
+          </p>
+          <h1 className="mt-2 font-display text-lg leading-tight tracking-wide">
+            Fiesta del Caballo
+          </h1>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <NavLinks />
+        </div>
+        <SidebarFooter />
+      </aside>
+
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-40 flex items-center justify-between bg-noche px-4 py-3 text-marfil lg:hidden">
+          <div>
+            <p className="font-ui text-[0.58rem] uppercase tracking-[0.22em] text-arena">
+              Admin
+            </p>
+            <p className="font-display text-sm tracking-wide">Fiesta del Caballo</p>
+          </div>
           <Button
             type="button"
-            variant="outline"
-            className="mt-8 w-full justify-start rounded-lg border-marfil/20 text-marfil hover:bg-white/10"
-            onClick={() => void logout()}
+            variant="ghost"
+            size="icon"
+            className="text-marfil hover:bg-white/10"
+            aria-label={open ? "Cerrar menú" : "Abrir menú"}
+            onClick={() => setOpen((value) => !value)}
           >
-            <LogOut className="h-4 w-4" />
-            Cerrar sesión
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
-        </div>
-      ) : null}
+        </header>
 
-      <div className="mx-auto grid min-h-dvh max-w-7xl lg:grid-cols-[240px_1fr]">
-        <aside className="sticky top-0 hidden h-dvh flex-col border-r border-noche/80 bg-noche p-5 text-marfil lg:flex">
-          <div className="mb-8">
-            <p className="font-ui text-[0.62rem] uppercase tracking-[0.28em] text-arena">
-              Panel admin
-            </p>
-            <h1 className="mt-2 font-display text-lg leading-tight tracking-wide">
-              Fiesta del Caballo
-            </h1>
+        {open ? (
+          <div className="fixed inset-0 z-30 flex flex-col bg-noche px-4 pb-8 pt-20 lg:hidden">
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <NavLinks onNavigate={() => setOpen(false)} />
+            </div>
+            <SidebarFooter />
           </div>
-          <div className="flex-1">
-            <NavLinks />
-          </div>
-          <div className="space-y-3">
-            <a
-              href="/"
-              target="_blank"
-              rel="noreferrer"
-              className="block px-3 font-ui text-xs text-marfil/50 underline-offset-4 hover:text-arena hover:underline"
-            >
-              Ver invitación
-            </a>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full justify-start rounded-lg border-marfil/20 text-marfil hover:bg-white/10"
-              onClick={() => void logout()}
-            >
-              <LogOut className="h-4 w-4" />
-              Cerrar sesión
-            </Button>
-          </div>
-        </aside>
-        <main className="p-5 pb-16 sm:p-8 lg:p-10">{children}</main>
+        ) : null}
+
+        <main className="w-full flex-1 p-5 pb-16 sm:p-8 lg:p-10">{children}</main>
       </div>
     </div>
   );

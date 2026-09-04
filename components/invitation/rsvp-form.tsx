@@ -324,3 +324,79 @@ export function RsvpForm({
     </section>
   );
 }
+
+export function RsvpPreview({
+  config,
+  state,
+}: {
+  config?: SiteConfig;
+  state: "closed" | "form" | "done";
+}) {
+  const t = (key: Parameters<typeof rsvpText>[1]) => rsvpText(config, key);
+
+  return (
+    <section className="w-full border-y border-ocre/20 py-10" aria-hidden>
+      <div className="w-full px-5 sm:px-8">
+        <div className="text-center">
+          <p className="font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre">
+            {t("rsvp_etiqueta")}
+          </p>
+          <h2 className="mt-2 font-display text-xl tracking-[0.08em] sm:text-2xl">
+            {t("rsvp_titulo")}
+          </h2>
+          <GoldRule className="my-4 w-16 origin-center" />
+        </div>
+
+        {state === "done" ? (
+          <div className="mx-auto max-w-xl py-4 text-center">
+            <CheckCircle2 className="mx-auto h-8 w-8 text-ocre" />
+            <p className="mt-3 font-script text-3xl text-noche">{t("rsvp_gracias_titulo")}</p>
+            <p className="mt-2 font-editorial text-base text-ink-soft sm:text-lg">
+              {t("rsvp_gracias_texto")}
+            </p>
+          </div>
+        ) : state === "form" ? (
+          <div className="mx-auto w-full max-w-5xl space-y-5">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {(
+                [
+                  "rsvp_label_nombre",
+                  "rsvp_label_apellido",
+                  "rsvp_label_cargo",
+                  "rsvp_label_institucion",
+                  "rsvp_label_telefono",
+                  "rsvp_label_email",
+                ] as const
+              ).map((key) => (
+                <div key={key} className="space-y-1.5">
+                  <p className={labelClass}>{t(key)}</p>
+                  <div className="h-10 border-b border-ocre/30" />
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <p className={labelClass}>{t("rsvp_pregunta")}</p>
+              <div className="grid grid-cols-2 gap-px overflow-hidden border border-ocre/30">
+                <div className="flex min-h-10 items-center justify-center bg-noche font-ui text-xs uppercase tracking-[0.14em] text-marfil">
+                  {t("rsvp_boton_si")}
+                </div>
+                <div className="flex min-h-10 items-center justify-center font-ui text-xs uppercase tracking-[0.14em] text-noche">
+                  {t("rsvp_boton_no")}
+                </div>
+              </div>
+            </div>
+            <div className="flex h-11 items-center justify-center bg-noche font-ui text-xs uppercase tracking-[0.22em] text-marfil">
+              {t("rsvp_boton_enviar")}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-5">
+            <div className="flex h-11 items-center justify-center bg-noche font-ui text-xs uppercase tracking-[0.22em] text-marfil">
+              {t("rsvp_boton_abrir")}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

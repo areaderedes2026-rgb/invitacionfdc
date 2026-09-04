@@ -46,7 +46,7 @@ export default function RootLayout({
       lang="es"
       className={`${cinzel.variable} ${cormorant.variable} ${greatVibes.variable} ${sourceSans.variable}`}
     >
-      <body className="min-h-dvh antialiased">
+      <body className="min-h-dvh w-full antialiased">
         {children}
         <Toaster richColors position="top-center" />
       </body>

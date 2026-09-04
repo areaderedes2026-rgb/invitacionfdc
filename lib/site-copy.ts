@@ -69,8 +69,18 @@ function parseCopyBlob(value: string) {
   return packed;
 }
 
-function parseMetaSrc(src: string | undefined) {
-  if (!src?.trim()) return {} as Partial<Record<SiteCopyKey, string>>;
+function parseMetaSrc(src: unknown) {
+  if (src && typeof src === "object" && !Array.isArray(src)) {
+    const obj = src as Record<string, unknown>;
+    const packed: Partial<Record<SiteCopyKey, string>> = {};
+    for (const key of SITE_COPY_KEYS) {
+      if (typeof obj[key] === "string") packed[key] = obj[key];
+    }
+    if (Object.keys(packed).length) return packed;
+  }
+  if (typeof src !== "string" || !src.trim()) {
+    return {} as Partial<Record<SiteCopyKey, string>>;
+  }
   try {
     const parsed = JSON.parse(src) as Record<string, unknown>;
     const packed: Partial<Record<SiteCopyKey, string>> = {};

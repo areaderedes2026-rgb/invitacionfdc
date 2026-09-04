@@ -65,6 +65,7 @@ export function EventInfo({
             <CoverMedia
               src={imageSrc}
               priority={!preview}
+              native={preview}
               onError={() => setBrokenImage(true)}
             />
           </div>

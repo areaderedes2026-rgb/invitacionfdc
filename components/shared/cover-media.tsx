@@ -6,14 +6,19 @@ export function CoverMedia({
   src,
   onError,
   priority = false,
+  native = false,
 }: {
   src: string;
   onError: () => void;
   priority?: boolean;
+  native?: boolean;
 }) {
   const remote = /^https?:\/\//i.test(src);
+  const usable = Boolean(src?.trim()) && (remote || src.startsWith("/") || src.startsWith("data:"));
 
-  if (remote) {
+  if (!usable) return null;
+
+  if (native || remote) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img

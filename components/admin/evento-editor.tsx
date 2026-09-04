@@ -4,13 +4,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
 import { EventInfo } from "@/components/invitation/event-info";
-import { RsvpForm } from "@/components/invitation/rsvp-form";
+import { RsvpPreview } from "@/components/invitation/rsvp-form";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { ensureSiteConfig } from "@/lib/ensure-config";
 import type { SiteConfig } from "@/types";
 
 function datetimeValue(value: string) {
@@ -18,9 +19,14 @@ function datetimeValue(value: string) {
 }
 
 export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
-  const [config, setConfig] = useState(initialConfig);
+  const [config, setConfig] = useState(() => ensureSiteConfig(initialConfig));
   const [saving, setSaving] = useState(false);
   const [rsvpPreview, setRsvpPreview] = useState<"closed" | "form" | "done">("closed");
+
+  const text = (key: keyof SiteConfig) => {
+    const value = config[key];
+    return typeof value === "string" ? value : "";
+  };
 
   const update = <K extends keyof SiteConfig>(key: K, value: SiteConfig[K]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -38,7 +44,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
       if (!res.ok) {
         throw new Error(data.error || "Error al guardar");
       }
-      if (data.config) setConfig(data.config);
+      if (data.config) setConfig(ensureSiteConfig(data.config));
       toast.success("Cambios guardados. Recargá la invitación para verlos.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al guardar");
@@ -105,7 +111,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="evento_fecha_texto">Texto de fecha</Label>
             <Input
               id="evento_fecha_texto"
-              value={config.evento_fecha_texto}
+              value={text("evento_fecha_texto")}
               placeholder="Se genera con el inicio, o con inicio y fin"
               onChange={(e) => update("evento_fecha_texto", e.target.value)}
             />
@@ -114,7 +120,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="evento_hora_texto">Texto de hora</Label>
             <Input
               id="evento_hora_texto"
-              value={config.evento_hora_texto}
+              value={text("evento_hora_texto")}
               placeholder="Se genera automáticamente"
               onChange={(e) => update("evento_hora_texto", e.target.value)}
             />
@@ -125,7 +131,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <Label htmlFor="evento_lugar_texto">Texto de lugar</Label>
           <Input
             id="evento_lugar_texto"
-            value={config.evento_lugar_texto}
+              value={text("evento_lugar_texto")}
             placeholder="Se usa el lugar institucional"
             onChange={(e) => update("evento_lugar_texto", e.target.value)}
           />
@@ -136,7 +142,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="evento_label_fecha">Etiqueta de fecha</Label>
             <Input
               id="evento_label_fecha"
-              value={config.evento_label_fecha}
+              value={text("evento_label_fecha")}
               placeholder="Fecha"
               onChange={(e) => update("evento_label_fecha", e.target.value)}
             />
@@ -145,7 +151,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="evento_label_hora">Etiqueta de hora</Label>
             <Input
               id="evento_label_hora"
-              value={config.evento_label_hora}
+              value={text("evento_label_hora")}
               placeholder="Hora"
               onChange={(e) => update("evento_label_hora", e.target.value)}
             />
@@ -154,7 +160,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="evento_label_lugar">Etiqueta de lugar</Label>
             <Input
               id="evento_label_lugar"
-              value={config.evento_label_lugar}
+              value={text("evento_label_lugar")}
               placeholder="Lugar"
               onChange={(e) => update("evento_label_lugar", e.target.value)}
             />
@@ -240,7 +246,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="cuenta_etiqueta">Línea chica</Label>
             <Input
               id="cuenta_etiqueta"
-              value={config.cuenta_etiqueta}
+              value={text("cuenta_etiqueta")}
               placeholder="Cuenta regresiva"
               onChange={(e) => update("cuenta_etiqueta", e.target.value)}
             />
@@ -249,7 +255,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="cuenta_titulo">Título grande</Label>
             <Input
               id="cuenta_titulo"
-              value={config.cuenta_titulo}
+              value={text("cuenta_titulo")}
               placeholder="Hasta el inicio del lanzamiento"
               onChange={(e) => update("cuenta_titulo", e.target.value)}
             />
@@ -259,7 +265,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <Label htmlFor="cuenta_titulo_fin">Título cuando ya empezó</Label>
           <Input
             id="cuenta_titulo_fin"
-            value={config.cuenta_titulo_fin}
+              value={text("cuenta_titulo_fin")}
             placeholder="La fiesta ha comenzado"
             onChange={(e) => update("cuenta_titulo_fin", e.target.value)}
           />
@@ -273,7 +279,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="mapa_titulo">Título del mapa</Label>
             <Input
               id="mapa_titulo"
-              value={config.mapa_titulo}
+              value={text("mapa_titulo")}
               placeholder="Ubicación"
               onChange={(e) => update("mapa_titulo", e.target.value)}
             />
@@ -282,7 +288,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="mapa_boton">Texto del botón</Label>
             <Input
               id="mapa_boton"
-              value={config.mapa_boton}
+              value={text("mapa_boton")}
               placeholder="Cómo llegar"
               onChange={(e) => update("mapa_boton", e.target.value)}
             />
@@ -293,7 +299,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <Label htmlFor="ubicacion">Lugar (si no hay texto de lugar arriba)</Label>
           <Input
             id="ubicacion"
-            value={config.ubicacion}
+              value={text("ubicacion")}
             onChange={(e) => update("ubicacion", e.target.value)}
           />
         </div>
@@ -302,7 +308,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <Label htmlFor="ubicacion_detalle">Detalle bajo el lugar</Label>
           <Input
             id="ubicacion_detalle"
-            value={config.ubicacion_detalle}
+              value={text("ubicacion_detalle")}
             onChange={(e) => update("ubicacion_detalle", e.target.value)}
           />
         </div>
@@ -311,7 +317,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <Label htmlFor="mapa_url">Enlace del botón Cómo llegar</Label>
           <Input
             id="mapa_url"
-            value={config.mapa_url}
+              value={text("mapa_url")}
             onChange={(e) => update("mapa_url", e.target.value)}
           />
         </div>
@@ -321,7 +327,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <Textarea
             id="mapa_embed"
             rows={3}
-            value={config.mapa_embed}
+              value={text("mapa_embed")}
             onChange={(e) => update("mapa_embed", e.target.value)}
           />
         </div>
@@ -346,7 +352,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_etiqueta">Línea chica</Label>
             <Input
               id="rsvp_etiqueta"
-              value={config.rsvp_etiqueta}
+              value={text("rsvp_etiqueta")}
               placeholder="Confirmación de asistencia"
               onChange={(e) => update("rsvp_etiqueta", e.target.value)}
             />
@@ -355,7 +361,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_titulo">Título</Label>
             <Input
               id="rsvp_titulo"
-              value={config.rsvp_titulo}
+              value={text("rsvp_titulo")}
               placeholder="Confirmar Presencia"
               onChange={(e) => update("rsvp_titulo", e.target.value)}
             />
@@ -367,7 +373,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_boton_abrir">Botón inicial</Label>
             <Input
               id="rsvp_boton_abrir"
-              value={config.rsvp_boton_abrir}
+              value={text("rsvp_boton_abrir")}
               placeholder="Confirmar asistencia"
               onChange={(e) => update("rsvp_boton_abrir", e.target.value)}
             />
@@ -376,7 +382,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_boton_enviar">Botón de envío</Label>
             <Input
               id="rsvp_boton_enviar"
-              value={config.rsvp_boton_enviar}
+              value={text("rsvp_boton_enviar")}
               placeholder="Confirmar presencia"
               onChange={(e) => update("rsvp_boton_enviar", e.target.value)}
             />
@@ -387,7 +393,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <Label htmlFor="rsvp_boton_enviando">Texto mientras envía</Label>
           <Input
             id="rsvp_boton_enviando"
-            value={config.rsvp_boton_enviando}
+            value={text("rsvp_boton_enviando")}
             placeholder="Enviando..."
             onChange={(e) => update("rsvp_boton_enviando", e.target.value)}
           />
@@ -397,7 +403,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           <Label htmlFor="rsvp_pregunta">Pregunta de asistencia</Label>
           <Input
             id="rsvp_pregunta"
-            value={config.rsvp_pregunta}
+            value={text("rsvp_pregunta")}
             placeholder="¿Confirmará asistencia?"
             onChange={(e) => update("rsvp_pregunta", e.target.value)}
           />
@@ -408,7 +414,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_boton_si">Botón sí</Label>
             <Input
               id="rsvp_boton_si"
-              value={config.rsvp_boton_si}
+              value={text("rsvp_boton_si")}
               placeholder="Sí, asistiré"
               onChange={(e) => update("rsvp_boton_si", e.target.value)}
             />
@@ -417,7 +423,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_boton_no">Botón no</Label>
             <Input
               id="rsvp_boton_no"
-              value={config.rsvp_boton_no}
+              value={text("rsvp_boton_no")}
               placeholder="No podré"
               onChange={(e) => update("rsvp_boton_no", e.target.value)}
             />
@@ -429,7 +435,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_gracias_titulo">Título de agradecimiento</Label>
             <Input
               id="rsvp_gracias_titulo"
-              value={config.rsvp_gracias_titulo}
+              value={text("rsvp_gracias_titulo")}
               placeholder="Gracias"
               onChange={(e) => update("rsvp_gracias_titulo", e.target.value)}
             />
@@ -439,7 +445,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Textarea
               id="rsvp_gracias_texto"
               rows={3}
-              value={config.rsvp_gracias_texto}
+              value={text("rsvp_gracias_texto")}
               placeholder="Su confirmación ha sido registrada."
               onChange={(e) => update("rsvp_gracias_texto", e.target.value)}
             />
@@ -454,7 +460,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_label_nombre">Nombre</Label>
             <Input
               id="rsvp_label_nombre"
-              value={config.rsvp_label_nombre}
+              value={text("rsvp_label_nombre")}
               onChange={(e) => update("rsvp_label_nombre", e.target.value)}
             />
           </div>
@@ -462,7 +468,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_label_apellido">Apellido</Label>
             <Input
               id="rsvp_label_apellido"
-              value={config.rsvp_label_apellido}
+              value={text("rsvp_label_apellido")}
               onChange={(e) => update("rsvp_label_apellido", e.target.value)}
             />
           </div>
@@ -470,7 +476,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_label_cargo">Cargo</Label>
             <Input
               id="rsvp_label_cargo"
-              value={config.rsvp_label_cargo}
+              value={text("rsvp_label_cargo")}
               onChange={(e) => update("rsvp_label_cargo", e.target.value)}
             />
           </div>
@@ -478,7 +484,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_label_institucion">Institución</Label>
             <Input
               id="rsvp_label_institucion"
-              value={config.rsvp_label_institucion}
+              value={text("rsvp_label_institucion")}
               onChange={(e) => update("rsvp_label_institucion", e.target.value)}
             />
           </div>
@@ -486,7 +492,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_label_telefono">Teléfono</Label>
             <Input
               id="rsvp_label_telefono"
-              value={config.rsvp_label_telefono}
+              value={text("rsvp_label_telefono")}
               onChange={(e) => update("rsvp_label_telefono", e.target.value)}
             />
           </div>
@@ -494,7 +500,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Label htmlFor="rsvp_label_email">Correo</Label>
             <Input
               id="rsvp_label_email"
-              value={config.rsvp_label_email}
+              value={text("rsvp_label_email")}
               onChange={(e) => update("rsvp_label_email", e.target.value)}
             />
           </div>
@@ -530,7 +536,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             </div>
           </div>
           <div className="bg-marfil">
-            <RsvpForm config={config} preview previewState={rsvpPreview} />
+            <RsvpPreview config={config} state={rsvpPreview} />
           </div>
         </div>
 

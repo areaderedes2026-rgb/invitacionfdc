@@ -94,6 +94,15 @@ function extraFilled(
 }
 
 function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | null): SiteConfig {
+  try {
+    return normalizeConfigUnsafe(row);
+  } catch (error) {
+    console.error("normalizeConfig", error);
+    return { ...DEFAULT_CONFIG };
+  }
+}
+
+function normalizeConfigUnsafe(row: Record<string, unknown> | Partial<SiteConfig> | null): SiteConfig {
   const raw = (row || {}) as Record<string, unknown>;
   const packed = unpackCarta(asString(raw.carta, DEFAULT_CONFIG.carta));
   const info = unpackSiteInfo(asString(raw.info_protocolar, DEFAULT_CONFIG.info_protocolar));
@@ -217,22 +226,27 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
 }
 
 export async function getSiteConfig(): Promise<SiteConfig> {
-  const supabase = getSupabaseServerClient();
+  try {
+    const supabase = getSupabaseServerClient();
 
-  if (supabase) {
-    const { data, error } = await supabase
-      .from("configuracion")
-      .select("*")
-      .eq("id", 1)
-      .maybeSingle();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("configuracion")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
 
-    if (!error && data) {
-      return normalizeConfig(data as Record<string, unknown>);
+      if (!error && data) {
+        return normalizeConfig(data as Record<string, unknown>);
+      }
     }
-  }
 
-  const local = await readJsonFile<SiteConfig | null>(CONFIG_FILE, null);
-  return normalizeConfig(local);
+    const local = await readJsonFile<SiteConfig | null>(CONFIG_FILE, null);
+    return normalizeConfig(local);
+  } catch (error) {
+    console.error("getSiteConfig", error);
+    return { ...DEFAULT_CONFIG };
+  }
 }
 
 export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
