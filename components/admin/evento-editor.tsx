@@ -356,6 +356,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
               placeholder="Confirmación de asistencia"
               onChange={(e) => update("rsvp_etiqueta", e.target.value)}
             />
+            <p className="text-xs text-sepia">Vacío = no se muestra en la invitación.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="rsvp_titulo">Título</Label>

@@ -90,7 +90,8 @@ function extraFilled(
   key: SiteCopyKey,
   fallback: string
 ) {
-  return asFilled(extra[key] ?? raw[key], fallback);
+  if (typeof extra[key] === "string") return extra[key];
+  return asFilled(raw[key], fallback);
 }
 
 function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | null): SiteConfig {

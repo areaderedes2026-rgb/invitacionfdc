@@ -50,8 +50,12 @@ export function rsvpText(
   config: Partial<SiteConfig> | undefined,
   key: RsvpCopyKey
 ) {
-  const value = config?.[key]?.trim();
-  return value || DEFAULT_RSVP_COPY[key];
+  const value = config?.[key];
+  if (key === "rsvp_etiqueta") {
+    return typeof value === "string" ? value.trim() : "";
+  }
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : DEFAULT_RSVP_COPY[key];
 }
 
 function parseCopyBlob(value: string) {

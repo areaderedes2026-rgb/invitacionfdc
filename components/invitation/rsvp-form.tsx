@@ -105,17 +105,19 @@ export function RsvpForm({
     >
       <div className="w-full px-5 sm:px-8 lg:px-12">
         <div className="text-center">
-          <p
-            data-gsap={gsap ? "fade-in" : undefined}
-            className="font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre"
-          >
-            {t("rsvp_etiqueta")}
-          </p>
+          {t("rsvp_etiqueta") ? (
+            <p
+              data-gsap={gsap ? "fade-in" : undefined}
+              className="font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre"
+            >
+              {t("rsvp_etiqueta")}
+            </p>
+          ) : null}
           <h2
             id="rsvp-title"
             data-gsap={gsap ? "fade-up" : undefined}
             data-gsap-delay={gsap ? "0.06" : undefined}
-            className="mt-2 font-display text-xl tracking-[0.08em] sm:text-2xl"
+            className={t("rsvp_etiqueta") ? "mt-2 font-display text-xl tracking-[0.08em] sm:text-2xl" : "font-display text-xl tracking-[0.08em] sm:text-2xl"}
           >
             {t("rsvp_titulo")}
           </h2>
@@ -338,10 +340,12 @@ export function RsvpPreview({
     <section className="w-full border-y border-ocre/20 py-10" aria-hidden>
       <div className="w-full px-5 sm:px-8">
         <div className="text-center">
-          <p className="font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre">
-            {t("rsvp_etiqueta")}
-          </p>
-          <h2 className="mt-2 font-display text-xl tracking-[0.08em] sm:text-2xl">
+          {t("rsvp_etiqueta") ? (
+            <p className="font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre">
+              {t("rsvp_etiqueta")}
+            </p>
+          ) : null}
+          <h2 className={t("rsvp_etiqueta") ? "mt-2 font-display text-xl tracking-[0.08em] sm:text-2xl" : "font-display text-xl tracking-[0.08em] sm:text-2xl"}>
             {t("rsvp_titulo")}
           </h2>
           <GoldRule className="my-4 w-16 origin-center" />
