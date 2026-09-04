@@ -52,7 +52,7 @@ export function Footer({ config }: { config: SiteConfig }) {
           data-gsap-delay="0.22"
           className="mt-4 font-ui text-[0.65rem] uppercase tracking-[0.28em] text-arena/90 sm:text-[0.7rem]"
         >
-          Edición 2026
+          {config.encabezado?.trim() || "Edición 2026"}
         </p>
       </div>
     </footer>

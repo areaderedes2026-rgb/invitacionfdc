@@ -86,6 +86,8 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     titulo: asString(raw.titulo, DEFAULT_CONFIG.titulo),
     subtitulo: asString(raw.subtitulo, DEFAULT_CONFIG.subtitulo),
     bienvenida: asString(raw.bienvenida, DEFAULT_CONFIG.bienvenida),
+    encabezado: asString(raw.encabezado, DEFAULT_CONFIG.encabezado),
+    boton_abrir: asString(raw.boton_abrir, DEFAULT_CONFIG.boton_abrir),
     evento_fondo_url: asString(raw.evento_fondo_url, DEFAULT_CONFIG.evento_fondo_url),
     evento_overlay: asNumber(raw.evento_overlay, DEFAULT_CONFIG.evento_overlay),
     evento_fecha_texto: asString(raw.evento_fecha_texto, DEFAULT_CONFIG.evento_fecha_texto),
@@ -145,6 +147,8 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       titulo: next.titulo,
       subtitulo: next.subtitulo,
       bienvenida: next.bienvenida,
+      encabezado: next.encabezado,
+      boton_abrir: next.boton_abrir,
       evento_fondo_url: next.evento_fondo_url,
       evento_overlay: next.evento_overlay,
       evento_fecha_texto: next.evento_fecha_texto,
@@ -161,7 +165,18 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
     };
 
     const { error } = await supabase.from("configuracion").upsert(payload);
-    if (error) throw new Error(error.message);
+    if (error) {
+      const missingNewColumns = /encabezado|boton_abrir/i.test(error.message);
+      if (missingNewColumns) {
+        const fallback = { ...payload } as Record<string, unknown>;
+        delete fallback.encabezado;
+        delete fallback.boton_abrir;
+        const retry = await supabase.from("configuracion").upsert(fallback);
+        if (retry.error) throw new Error(retry.error.message);
+        return next;
+      }
+      throw new Error(error.message);
+    }
     return next;
   }
 

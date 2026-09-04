@@ -64,6 +64,8 @@ export interface SiteConfig {
   titulo: string;
   subtitulo: string;
   bienvenida: string;
+  encabezado: string;
+  boton_abrir: string;
   evento_fondo_url: string;
   evento_overlay: number;
   evento_fecha_texto: string;

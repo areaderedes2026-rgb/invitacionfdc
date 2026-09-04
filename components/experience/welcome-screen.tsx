@@ -39,7 +39,7 @@ export function WelcomeScreen({ config }: { config: SiteConfig }) {
           />
 
           <p className="relative font-ui text-[0.62rem] uppercase tracking-[0.34em] text-ocre sm:text-[0.68rem]">
-            Invitación oficial
+            {config.encabezado?.trim() || "Invitación oficial"}
           </p>
 
           <p className="relative mt-4 font-script text-[2.05rem] leading-none text-noche sm:mt-5 sm:text-4xl md:text-5xl">
@@ -53,13 +53,13 @@ export function WelcomeScreen({ config }: { config: SiteConfig }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={config.logo_fiesta}
-                alt="Logo oficial XXVII Fiesta Nacional e Internacional del Caballo"
+                alt={config.titulo || "Logo oficial"}
                 className="h-full w-full object-contain"
               />
             ) : (
               <Image
                 src={config.logo_fiesta || "/images/brand/logo-oficial.png"}
-                alt="Logo oficial XXVII Fiesta Nacional e Internacional del Caballo"
+                alt={config.titulo || "Logo oficial"}
                 fill
                 className="object-contain"
                 sizes="(max-width: 768px) 248px, 336px"
@@ -74,7 +74,7 @@ export function WelcomeScreen({ config }: { config: SiteConfig }) {
 
           <div className="relative mt-8 flex justify-center sm:mt-9">
             <SealButton disabled={curtainAnimating} onClick={openInvitation}>
-              Abrir Invitación
+              {config.boton_abrir?.trim() || "Abrir Invitación"}
             </SealButton>
           </div>
         </div>

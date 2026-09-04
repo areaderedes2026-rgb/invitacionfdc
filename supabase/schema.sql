@@ -23,6 +23,8 @@ create table if not exists public.configuracion (
   titulo text,
   subtitulo text,
   bienvenida text,
+  encabezado text,
+  boton_abrir text,
   evento_fondo_url text,
   evento_overlay integer default 58,
   evento_fecha_texto text default '',
@@ -91,6 +93,8 @@ alter table public.configuracion add column if not exists evento_lugar_texto tex
 alter table public.configuracion add column if not exists cronograma_fondo_url text;
 alter table public.configuracion add column if not exists cronograma_overlay integer default 58;
 alter table public.configuracion add column if not exists cronograma_titulo text default '';
+alter table public.configuracion add column if not exists encabezado text default '';
+alter table public.configuracion add column if not exists boton_abrir text default '';
 
 -- Bucket público para logos y fondos subidos desde el admin.
 insert into storage.buckets (id, name, public)

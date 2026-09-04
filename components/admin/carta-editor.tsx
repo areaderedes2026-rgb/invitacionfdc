@@ -25,7 +25,7 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Error al guardar");
       }
-      toast.success("Cambios guardados");
+      toast.success("Cambios guardados. Recargá la invitación para verlos.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al guardar");
     } finally {
@@ -45,13 +45,31 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           Inicio y carta
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-sepia">
-          Portada, textos de la carta y firmas. Un solo guardado actualiza todo.
+          Cada campo de acá se ve en la invitación. Guardá y recargá la página
+          pública para comprobarlo.
         </p>
       </div>
 
       <section className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
+        <div>
+          <h3 className="font-display text-xl tracking-wide">Portada</h3>
+          <p className="mt-1 text-sm text-sepia">
+            Lo primero que se ve, antes de abrir la invitación.
+          </p>
+        </div>
         <div className="space-y-2">
-          <Label htmlFor="bienvenida">Saludo de la portada</Label>
+          <Label htmlFor="encabezado">Línea superior (portada, carta y pie)</Label>
+          <Input
+            id="encabezado"
+            value={config.encabezado}
+            placeholder="Invitación oficial · Edición 2026"
+            onChange={(e) =>
+              setConfig((prev) => ({ ...prev, encabezado: e.target.value }))
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="bienvenida">Saludo grande de la portada</Label>
           <Input
             id="bienvenida"
             value={config.bienvenida}
@@ -61,7 +79,27 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="titulo">Título (aparece en el pie)</Label>
+          <Label htmlFor="boton_abrir">Texto del botón</Label>
+          <Input
+            id="boton_abrir"
+            value={config.boton_abrir}
+            placeholder="Abrir Invitación"
+            onChange={(e) =>
+              setConfig((prev) => ({ ...prev, boton_abrir: e.target.value }))
+            }
+          />
+        </div>
+      </section>
+
+      <section className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
+        <div>
+          <h3 className="font-display text-xl tracking-wide">Carta</h3>
+          <p className="mt-1 text-sm text-sepia">
+            Título, subtítulo y cuerpo que se leen al abrir la invitación.
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="titulo">Título de la carta (también en el pie)</Label>
           <Input
             id="titulo"
             value={config.titulo}
@@ -69,6 +107,9 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
               setConfig((prev) => ({ ...prev, titulo: e.target.value }))
             }
           />
+          <p className="text-xs text-sepia">
+            Es el título grande de la carta, no solo el del pie.
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="subtitulo">Subtítulo (portada, carta y pie)</Label>
@@ -90,6 +131,9 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
               setConfig((prev) => ({ ...prev, carta: e.target.value }))
             }
           />
+          <p className="text-xs text-sepia">
+            Un renglón vacío separa párrafos.
+          </p>
         </div>
       </section>
 

@@ -43,13 +43,13 @@ export function InstitutionalLetter({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: isOpening ? 0.2 : 0 }}
           >
-            Invitación oficial · Edición 2026
+            {config.encabezado?.trim() || "Invitación oficial · Edición 2026"}
           </motion.p>
           <h2
             id="carta-title"
             className="mt-3 text-center font-display text-[1.55rem] leading-tight tracking-[0.06em] text-noche sm:text-3xl md:text-4xl"
           >
-            XXVII Fiesta Nacional e Internacional del Caballo
+            {config.titulo}
           </h2>
           <p className="mt-3 text-center font-editorial text-base italic text-ink-soft sm:text-lg">
             {config.subtitulo}
