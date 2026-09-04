@@ -1,12 +1,13 @@
 "use client";
 
+import { extractYoutubeId, youtubeEmbedUrl } from "@/lib/youtube";
 import type { SiteConfig } from "@/types";
 
 export function VideoSection({ config }: { config: SiteConfig }) {
   if (!config.video_url) return null;
 
-  const isYoutube =
-    config.video_url.includes("youtube.com") || config.video_url.includes("youtu.be");
+  const youtubeId = extractYoutubeId(config.video_url);
+  const youtubeSrc = youtubeId ? youtubeEmbedUrl(config.video_url) : "";
 
   return (
     <section id="video" className="py-16" aria-labelledby="video-title">
@@ -23,10 +24,10 @@ export function VideoSection({ config }: { config: SiteConfig }) {
           className="institutional-card overflow-hidden rounded-[2rem]"
         >
           <div className="relative aspect-video w-full bg-ink">
-            {isYoutube ? (
+            {youtubeId ? (
               <iframe
                 title="Video institucional"
-                src={config.video_url}
+                src={youtubeSrc}
                 className="absolute inset-0 h-full w-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

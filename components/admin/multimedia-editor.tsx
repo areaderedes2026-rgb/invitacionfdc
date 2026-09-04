@@ -7,17 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { extractYoutubeId, youtubeEmbedUrl, youtubeThumbUrl } from "@/lib/youtube";
 import type { SiteConfig } from "@/types";
-
-function youtubeEmbed(url: string) {
-  const value = url.trim();
-  if (!value) return "";
-  const id =
-    value.match(/youtu\.be\/([\w-]+)/)?.[1] ||
-    value.match(/[?&]v=([\w-]+)/)?.[1] ||
-    value.match(/youtube\.com\/embed\/([\w-]+)/)?.[1];
-  return id ? `https://www.youtube.com/embed/${id}` : value;
-}
 
 export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
   const [config, setConfig] = useState(initialConfig);
@@ -32,7 +23,7 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
     try {
       const payload = {
         ...config,
-        video_url: youtubeEmbed(config.video_url),
+        video_url: youtubeEmbedUrl(config.video_url),
       };
       const res = await fetch("/api/admin/config", {
         method: "PUT",
@@ -51,6 +42,8 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
       setSaving(false);
     }
   };
+
+  const musicYoutubeId = extractYoutubeId(config.musica_url);
 
   return (
     <div className="space-y-8">
@@ -88,19 +81,38 @@ export function MultimediaEditor({ initialConfig }: { initialConfig: SiteConfig 
         <div>
           <h3 className="font-display text-xl tracking-wide">Música</h3>
           <p className="mt-1 text-sm text-sepia">
-            Si hay una URL, el botón de volumen de la invitación reproduce esta
-            pista. Si queda vacío, el botón usa el ambiente suave.
+            Pegá el enlace de YouTube de la canción (también sirve YouTube Music
+            o youtu.be). El botón de volumen de la invitación la reproduce. Si
+            queda vacío, usa el ambiente suave.
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="musica_url">URL del audio (mp3 u ogg)</Label>
+          <Label htmlFor="musica_url">Enlace de YouTube o archivo mp3</Label>
           <Input
             id="musica_url"
             value={config.musica_url}
-            placeholder="https://.../musica.mp3"
+            placeholder="https://www.youtube.com/watch?v=... o https://youtu.be/..."
             onChange={(e) => update("musica_url", e.target.value)}
           />
         </div>
+        {musicYoutubeId ? (
+          <div className="flex items-center gap-3 rounded-xl border border-ocre/15 bg-marfil p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={youtubeThumbUrl(musicYoutubeId)}
+              alt=""
+              className="h-16 w-28 rounded-lg object-cover"
+            />
+            <p className="text-sm text-noche">
+              Canción reconocida. Guardá y, en la invitación, tocá el botón de
+              volumen para oírla.
+            </p>
+          </div>
+        ) : config.musica_url.trim() ? (
+          <p className="text-sm text-sepia">
+            Si no es YouTube, tiene que ser un archivo directo (mp3 u ogg).
+          </p>
+        ) : null}
       </section>
 
       <section className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
