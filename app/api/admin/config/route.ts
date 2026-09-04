@@ -23,9 +23,14 @@ export async function PUT(request: Request) {
     const body = (await request.json()) as SiteConfig;
     const config = await saveSiteConfig(body);
     return NextResponse.json({ ok: true, config });
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
     return NextResponse.json(
-      { error: "No se pudo guardar la configuración" },
+      {
+        error: /timestamp|date/i.test(message)
+          ? "Revisá las fechas. El fin puede quedar vacío."
+          : "No se pudo guardar la configuración",
+      },
       { status: 500 }
     );
   }

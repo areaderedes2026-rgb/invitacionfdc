@@ -40,6 +40,25 @@ function asString(value: unknown, fallback: string) {
   return typeof value === "string" ? value : fallback;
 }
 
+function asTimestamp(value: unknown, fallback = "") {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+  if (typeof value === "string" && value.trim()) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return value;
+  }
+  return fallback;
+}
+
+function toDbTimestamp(value: string) {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return trimmed;
+}
+
 function asNumber(value: unknown, fallback: number) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
@@ -50,8 +69,8 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
   return {
     ...DEFAULT_CONFIG,
     carta: asString(raw.carta, DEFAULT_CONFIG.carta),
-    fecha_evento: asString(raw.fecha_evento, DEFAULT_CONFIG.fecha_evento),
-    fecha_fin: asString(raw.fecha_fin, DEFAULT_CONFIG.fecha_fin),
+    fecha_evento: asTimestamp(raw.fecha_evento, DEFAULT_CONFIG.fecha_evento),
+    fecha_fin: asTimestamp(raw.fecha_fin, ""),
     horarios: asString(raw.horarios, DEFAULT_CONFIG.horarios),
     ubicacion: asString(raw.ubicacion, DEFAULT_CONFIG.ubicacion),
     ubicacion_detalle: asString(raw.ubicacion_detalle, DEFAULT_CONFIG.ubicacion_detalle),
@@ -109,8 +128,8 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
     const payload = {
       id: 1,
       carta: next.carta,
-      fecha_evento: next.fecha_evento,
-      fecha_fin: next.fecha_fin,
+      fecha_evento: toDbTimestamp(next.fecha_evento),
+      fecha_fin: toDbTimestamp(next.fecha_fin),
       horarios: next.horarios,
       ubicacion: next.ubicacion,
       ubicacion_detalle: next.ubicacion_detalle,
