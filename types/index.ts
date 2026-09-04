@@ -69,6 +69,7 @@ export interface SiteConfig {
   carta_fuente: string;
   carta_tamano: number;
   carta_grosor: number;
+  carta_alinear: string;
   evento_fondo_url: string;
   evento_overlay: number;
   evento_fecha_texto: string;

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  CARTA_ALINEACIONES,
   CARTA_FUENTES,
   CARTA_GROSORES,
   cartaBodyStyle,
@@ -143,7 +144,7 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="carta_fuente">Fuente del cuerpo</Label>
             <select
@@ -184,6 +185,23 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             {config.carta_fuente === "script" ? (
               <p className="text-xs text-sepia">La manuscrita no admite negrita.</p>
             ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="carta_alinear">Alineación</Label>
+            <select
+              id="carta_alinear"
+              className="flex h-12 w-full rounded-xl border border-ocre/30 bg-marfil/90 px-3 font-ui text-noche"
+              value={config.carta_alinear || "left"}
+              onChange={(e) =>
+                setConfig((prev) => ({ ...prev, carta_alinear: e.target.value }))
+              }
+            >
+              {CARTA_ALINEACIONES.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="carta_tamano">

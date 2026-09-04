@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { DEFAULT_CONFIG } from "@/lib/default-content";
 import {
+  asCartaAlinear,
   asCartaFuente,
   clampCartaGrosor,
   clampCartaTamano,
@@ -138,6 +139,7 @@ function normalizeConfigUnsafe(row: Record<string, unknown> | Partial<SiteConfig
     carta_grosor: clampCartaGrosor(
       packed.style?.grosor ?? raw.carta_grosor ?? DEFAULT_CONFIG.carta_grosor
     ),
+    carta_alinear: asCartaAlinear(packed.style?.alinear ?? raw.carta_alinear),
     evento_fondo_url: asString(raw.evento_fondo_url, DEFAULT_CONFIG.evento_fondo_url),
     evento_overlay: asNumber(raw.evento_overlay, DEFAULT_CONFIG.evento_overlay),
     evento_fecha_texto: asString(raw.evento_fecha_texto, DEFAULT_CONFIG.evento_fecha_texto),
@@ -262,7 +264,8 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
         next.carta,
         next.carta_fuente,
         next.carta_tamano,
-        next.carta_grosor
+        next.carta_grosor,
+        next.carta_alinear
       ),
       fecha_evento: toDbTimestamp(next.fecha_evento),
       fecha_fin: toDbTimestamp(next.fecha_fin),
@@ -286,6 +289,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       carta_fuente: next.carta_fuente,
       carta_tamano: next.carta_tamano,
       carta_grosor: next.carta_grosor,
+      carta_alinear: next.carta_alinear,
       evento_fondo_url: next.evento_fondo_url,
       evento_overlay: next.evento_overlay,
       evento_fecha_texto: next.evento_fecha_texto,
@@ -332,6 +336,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       "carta_fuente",
       "carta_tamano",
       "carta_grosor",
+      "carta_alinear",
       "cuenta_etiqueta",
       "cuenta_titulo",
       "cuenta_titulo_fin",

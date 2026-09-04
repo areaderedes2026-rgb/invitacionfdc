@@ -36,6 +36,17 @@ export function asCartaFuente(value: unknown): CartaFuente {
     : "editorial";
 }
 
+export const CARTA_ALINEACIONES = [
+  { id: "left", label: "Izquierda" },
+  { id: "center", label: "Centrado" },
+] as const;
+
+export type CartaAlinear = (typeof CARTA_ALINEACIONES)[number]["id"];
+
+export function asCartaAlinear(value: unknown): CartaAlinear {
+  return value === "center" ? "center" : "left";
+}
+
 const FONT_STACKS: Record<CartaFuente, string> = {
   editorial: "var(--font-cormorant), Georgia, serif",
   display: 'var(--font-cinzel), "Times New Roman", serif',
@@ -43,11 +54,14 @@ const FONT_STACKS: Record<CartaFuente, string> = {
   script: "var(--font-script), cursive",
 };
 
-export function cartaBodyStyle(config: Pick<SiteConfig, "carta_fuente" | "carta_tamano" | "carta_grosor">) {
+export function cartaBodyStyle(
+  config: Pick<SiteConfig, "carta_fuente" | "carta_tamano" | "carta_grosor" | "carta_alinear">
+) {
   const fuente = asCartaFuente(config.carta_fuente);
   const font = CARTA_FUENTES.find((item) => item.id === fuente) || CARTA_FUENTES[0];
   const size = clampCartaTamano(config.carta_tamano);
   const weight = fuente === "script" ? 400 : clampCartaGrosor(config.carta_grosor);
+  const align = asCartaAlinear(config.carta_alinear);
 
   return {
     className: font.className,
@@ -56,16 +70,25 @@ export function cartaBodyStyle(config: Pick<SiteConfig, "carta_fuente" | "carta_
       fontSize: `${size}px`,
       fontWeight: weight,
       lineHeight: 1.65,
+      textAlign: align,
     } as const,
   };
 }
 
-const CARTA_STYLE_RE = /^<!--inv-carta-style:([a-z]+):(\d+):(\d+)-->\r?\n?/;
+const CARTA_STYLE_RE = /^<!--inv-carta-style:([a-z]+):(\d+):(\d+)(?::([a-z]+))?-->\r?\n?/;
 
 export function unpackCarta(value: string) {
   const match = value.match(CARTA_STYLE_RE);
   if (!match) {
-    return { text: value, style: null as { fuente: CartaFuente; tamano: number; grosor: number } | null };
+    return {
+      text: value,
+      style: null as {
+        fuente: CartaFuente;
+        tamano: number;
+        grosor: number;
+        alinear: CartaAlinear;
+      } | null,
+    };
   }
   return {
     text: value.slice(match[0].length),
@@ -73,11 +96,18 @@ export function unpackCarta(value: string) {
       fuente: asCartaFuente(match[1]),
       tamano: clampCartaTamano(match[2]),
       grosor: clampCartaGrosor(match[3]),
+      alinear: asCartaAlinear(match[4]),
     },
   };
 }
 
-export function packCarta(text: string, fuente: string, tamano: number, grosor: number) {
+export function packCarta(
+  text: string,
+  fuente: string,
+  tamano: number,
+  grosor: number,
+  alinear: string
+) {
   const clean = unpackCarta(text).text;
-  return `<!--inv-carta-style:${asCartaFuente(fuente)}:${clampCartaTamano(tamano)}:${clampCartaGrosor(grosor)}-->\n${clean}`;
+  return `<!--inv-carta-style:${asCartaFuente(fuente)}:${clampCartaTamano(tamano)}:${clampCartaGrosor(grosor)}:${asCartaAlinear(alinear)}-->\n${clean}`;
 }

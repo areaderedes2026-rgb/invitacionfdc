@@ -101,6 +101,7 @@ alter table public.configuracion add column if not exists boton_abrir text defau
 alter table public.configuracion add column if not exists carta_fuente text default 'editorial';
 alter table public.configuracion add column if not exists carta_tamano integer default 18;
 alter table public.configuracion add column if not exists carta_grosor integer default 600;
+alter table public.configuracion add column if not exists carta_alinear text default 'left';
 alter table public.configuracion add column if not exists cuenta_etiqueta text default '';
 alter table public.configuracion add column if not exists cuenta_titulo text default '';
 alter table public.configuracion add column if not exists cuenta_titulo_fin text default '';
