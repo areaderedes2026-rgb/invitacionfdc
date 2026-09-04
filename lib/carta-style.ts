@@ -36,6 +36,13 @@ export function asCartaFuente(value: unknown): CartaFuente {
     : "editorial";
 }
 
+const FONT_STACKS: Record<CartaFuente, string> = {
+  editorial: "var(--font-cormorant), Georgia, serif",
+  display: 'var(--font-cinzel), "Times New Roman", serif',
+  ui: "var(--font-sans), system-ui, sans-serif",
+  script: "var(--font-script), cursive",
+};
+
 export function cartaBodyStyle(config: Pick<SiteConfig, "carta_fuente" | "carta_tamano" | "carta_grosor">) {
   const fuente = asCartaFuente(config.carta_fuente);
   const font = CARTA_FUENTES.find((item) => item.id === fuente) || CARTA_FUENTES[0];
@@ -45,9 +52,32 @@ export function cartaBodyStyle(config: Pick<SiteConfig, "carta_fuente" | "carta_
   return {
     className: font.className,
     style: {
+      fontFamily: FONT_STACKS[fuente],
       fontSize: `${size}px`,
       fontWeight: weight,
       lineHeight: 1.65,
     } as const,
   };
+}
+
+const CARTA_STYLE_RE = /^<!--inv-carta-style:([a-z]+):(\d+):(\d+)-->\r?\n?/;
+
+export function unpackCarta(value: string) {
+  const match = value.match(CARTA_STYLE_RE);
+  if (!match) {
+    return { text: value, style: null as { fuente: CartaFuente; tamano: number; grosor: number } | null };
+  }
+  return {
+    text: value.slice(match[0].length),
+    style: {
+      fuente: asCartaFuente(match[1]),
+      tamano: clampCartaTamano(match[2]),
+      grosor: clampCartaGrosor(match[3]),
+    },
+  };
+}
+
+export function packCarta(text: string, fuente: string, tamano: number, grosor: number) {
+  const clean = unpackCarta(text).text;
+  return `<!--inv-carta-style:${asCartaFuente(fuente)}:${clampCartaTamano(tamano)}:${clampCartaGrosor(grosor)}-->\n${clean}`;
 }

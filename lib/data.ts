@@ -1,7 +1,13 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { DEFAULT_CONFIG } from "@/lib/default-content";
-import { asCartaFuente, clampCartaGrosor, clampCartaTamano } from "@/lib/carta-style";
+import {
+  asCartaFuente,
+  clampCartaGrosor,
+  clampCartaTamano,
+  packCarta,
+  unpackCarta,
+} from "@/lib/carta-style";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { AccessLog, Confirmation, RsvpPayload, SiteConfig } from "@/types";
 
@@ -72,9 +78,10 @@ function asNumber(value: unknown, fallback: number) {
 
 function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | null): SiteConfig {
   const raw = (row || {}) as Record<string, unknown>;
+  const packed = unpackCarta(asString(raw.carta, DEFAULT_CONFIG.carta));
   return {
     ...DEFAULT_CONFIG,
-    carta: asString(raw.carta, DEFAULT_CONFIG.carta),
+    carta: packed.text,
     fecha_evento: asTimestamp(raw.fecha_evento, DEFAULT_CONFIG.fecha_evento),
     fecha_fin: asTimestamp(raw.fecha_fin, ""),
     horarios: asString(raw.horarios, DEFAULT_CONFIG.horarios),
@@ -94,9 +101,13 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     bienvenida: asString(raw.bienvenida, DEFAULT_CONFIG.bienvenida),
     encabezado: asString(raw.encabezado, DEFAULT_CONFIG.encabezado),
     boton_abrir: asString(raw.boton_abrir, DEFAULT_CONFIG.boton_abrir),
-    carta_fuente: asCartaFuente(raw.carta_fuente),
-    carta_tamano: clampCartaTamano(raw.carta_tamano ?? DEFAULT_CONFIG.carta_tamano),
-    carta_grosor: clampCartaGrosor(raw.carta_grosor ?? DEFAULT_CONFIG.carta_grosor),
+    carta_fuente: asCartaFuente(packed.style?.fuente ?? raw.carta_fuente),
+    carta_tamano: clampCartaTamano(
+      packed.style?.tamano ?? raw.carta_tamano ?? DEFAULT_CONFIG.carta_tamano
+    ),
+    carta_grosor: clampCartaGrosor(
+      packed.style?.grosor ?? raw.carta_grosor ?? DEFAULT_CONFIG.carta_grosor
+    ),
     evento_fondo_url: asString(raw.evento_fondo_url, DEFAULT_CONFIG.evento_fondo_url),
     evento_overlay: asNumber(raw.evento_overlay, DEFAULT_CONFIG.evento_overlay),
     evento_fecha_texto: asString(raw.evento_fecha_texto, DEFAULT_CONFIG.evento_fecha_texto),
@@ -149,7 +160,12 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
   if (supabase) {
     const payload = {
       id: 1,
-      carta: next.carta,
+      carta: packCarta(
+        next.carta,
+        next.carta_fuente,
+        next.carta_tamano,
+        next.carta_grosor
+      ),
       fecha_evento: toDbTimestamp(next.fecha_evento),
       fecha_fin: toDbTimestamp(next.fecha_fin),
       horarios: next.horarios,

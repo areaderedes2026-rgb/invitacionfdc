@@ -3,7 +3,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { GoldRule, Ornament } from "@/components/shared/ornament";
 import { cartaBodyStyle } from "@/lib/carta-style";
-import { cn } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
 interface InstitutionalLetterProps {
@@ -69,13 +68,12 @@ export function InstitutionalLetter({
             <Ornament className="my-6 sm:my-8" />
           </motion.div>
 
-          <div
-            className={cn("space-y-5 text-noche sm:space-y-6", body.className)}
-            style={body.style}
-          >
+          <div className="space-y-5 text-noche sm:space-y-6">
             {paragraphs.map((paragraph, index) => (
               <motion.p
                 key={index}
+                className={body.className}
+                style={body.style}
                 initial={reduced ? false : { opacity: 0, y: 12 }}
                 animate={isOpening ? { opacity: 1, y: 0 } : undefined}
                 whileInView={isOpening ? undefined : { opacity: 1, y: 0 }}

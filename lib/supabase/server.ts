@@ -19,5 +19,8 @@ export function getSupabaseServerClient(): SupabaseClient | null {
       persistSession: false,
       autoRefreshToken: false,
     },
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }

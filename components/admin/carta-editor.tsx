@@ -26,10 +26,11 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Error al guardar");
       }
+      if (data.config) setConfig(data.config);
       toast.success("Cambios guardados. Recargá la invitación para verlos.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al guardar");
@@ -211,15 +212,14 @@ export function CartaEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             Vista previa del cuerpo
           </p>
           <div className="max-h-[22rem] overflow-auto bg-marfil px-5 py-6 sm:px-8">
-            <div
-              className={`space-y-4 text-noche ${body.className}`}
-              style={body.style}
-            >
+            <div className="space-y-4 text-noche">
               {(config.carta || "")
                 .split("\n\n")
                 .filter(Boolean)
                 .map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
+                  <p key={index} className={body.className} style={body.style}>
+                    {paragraph}
+                  </p>
                 ))}
             </div>
           </div>

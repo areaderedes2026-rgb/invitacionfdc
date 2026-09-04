@@ -3,6 +3,7 @@ import { InvitationExperience } from "@/components/experience/invitation-experie
 import { getSiteConfig } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
