@@ -48,14 +48,18 @@ function startAmbient(ctx: AudioContext): AmbientHandle {
 }
 
 export function AmbientAudio({ musicUrl }: { musicUrl?: string }) {
-  const { audioEnabled, setAudioEnabled } = useExperienceStore();
+  const audioEnabled = useExperienceStore((s) => s.audioEnabled);
+  const setAudioEnabled = useExperienceStore((s) => s.setAudioEnabled);
   const ambientRef = useRef<AmbientHandle | null>(null);
   const musicRef = useRef<HTMLAudioElement | null>(null);
 
   const stopAll = async () => {
-    if (musicRef.current) {
-      musicRef.current.pause();
-      musicRef.current.src = "";
+    const music = musicRef.current;
+    if (music) {
+      music.onended = null;
+      music.pause();
+      music.removeAttribute("src");
+      music.load();
       musicRef.current = null;
     }
     if (ambientRef.current) {
@@ -69,11 +73,31 @@ export function AmbientAudio({ musicUrl }: { musicUrl?: string }) {
     }
   };
 
+  const stopAllRef = useRef(stopAll);
+  stopAllRef.current = stopAll;
+
   useEffect(() => {
-    return () => {
-      void stopAll();
+    const cutSound = () => {
+      void stopAllRef.current().then(() => setAudioEnabled(false));
     };
-  }, []);
+
+    const onHidden = () => {
+      if (document.visibilityState === "hidden") cutSound();
+    };
+
+    document.addEventListener("visibilitychange", onHidden);
+    window.addEventListener("pagehide", cutSound);
+    window.addEventListener("beforeunload", cutSound);
+    window.addEventListener("freeze", cutSound);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("pagehide", cutSound);
+      window.removeEventListener("beforeunload", cutSound);
+      window.removeEventListener("freeze", cutSound);
+      cutSound();
+    };
+  }, [setAudioEnabled]);
 
   const toggleSound = async () => {
     if (audioEnabled) {
@@ -85,9 +109,14 @@ export function AmbientAudio({ musicUrl }: { musicUrl?: string }) {
     try {
       if (isPlayableAudio(musicUrl)) {
         const audio = new Audio(musicUrl);
-        audio.loop = true;
+        audio.loop = false;
         audio.volume = 0.4;
         audio.preload = "auto";
+        audio.setAttribute("playsinline", "true");
+        audio.onended = () => {
+          musicRef.current = null;
+          setAudioEnabled(false);
+        };
         musicRef.current = audio;
         await audio.play();
       } else {
