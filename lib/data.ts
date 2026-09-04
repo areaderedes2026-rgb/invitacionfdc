@@ -8,7 +8,14 @@ import {
   packCarta,
   unpackCarta,
 } from "@/lib/carta-style";
-import { mergeRsvpMeta, pickRsvpCopy, splitRsvpMeta } from "@/lib/rsvp-copy";
+import {
+  mergeSiteMeta,
+  packSiteInfo,
+  pickSiteCopy,
+  splitSiteMeta,
+  unpackSiteInfo,
+  type SiteCopyKey,
+} from "@/lib/site-copy";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { AccessLog, Confirmation, RsvpPayload, SiteConfig } from "@/types";
 
@@ -77,10 +84,21 @@ function asNumber(value: unknown, fallback: number) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function extraFilled(
+  extra: Partial<Record<SiteCopyKey, string>>,
+  raw: Record<string, unknown>,
+  key: SiteCopyKey,
+  fallback: string
+) {
+  return asFilled(extra[key] ?? raw[key], fallback);
+}
+
 function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | null): SiteConfig {
   const raw = (row || {}) as Record<string, unknown>;
   const packed = unpackCarta(asString(raw.carta, DEFAULT_CONFIG.carta));
-  const rsvp = splitRsvpMeta(raw.galeria);
+  const info = unpackSiteInfo(asString(raw.info_protocolar, DEFAULT_CONFIG.info_protocolar));
+  const site = splitSiteMeta(raw.galeria);
+  const extra = { ...info.packed, ...site.packed };
   return {
     ...DEFAULT_CONFIG,
     carta: packed.text,
@@ -92,7 +110,7 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     mapa_url: asString(raw.mapa_url, DEFAULT_CONFIG.mapa_url),
     mapa_embed: asString(raw.mapa_embed, DEFAULT_CONFIG.mapa_embed),
     accesos: asString(raw.accesos, DEFAULT_CONFIG.accesos),
-    info_protocolar: asString(raw.info_protocolar, DEFAULT_CONFIG.info_protocolar),
+    info_protocolar: info.text,
     musica_url: asString(raw.musica_url, DEFAULT_CONFIG.musica_url),
     video_url: asString(raw.video_url, DEFAULT_CONFIG.video_url),
     logo_fiesta: asString(raw.logo_fiesta, DEFAULT_CONFIG.logo_fiesta),
@@ -101,8 +119,8 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     titulo: asString(raw.titulo, DEFAULT_CONFIG.titulo),
     subtitulo: asString(raw.subtitulo, DEFAULT_CONFIG.subtitulo),
     bienvenida: asString(raw.bienvenida, DEFAULT_CONFIG.bienvenida),
-    encabezado: asString(raw.encabezado, DEFAULT_CONFIG.encabezado),
-    boton_abrir: asString(raw.boton_abrir, DEFAULT_CONFIG.boton_abrir),
+    encabezado: extraFilled(extra, raw, "encabezado", DEFAULT_CONFIG.encabezado),
+    boton_abrir: extraFilled(extra, raw, "boton_abrir", DEFAULT_CONFIG.boton_abrir),
     carta_fuente: asCartaFuente(packed.style?.fuente ?? raw.carta_fuente),
     carta_tamano: clampCartaTamano(
       packed.style?.tamano ?? raw.carta_tamano ?? DEFAULT_CONFIG.carta_tamano
@@ -115,85 +133,85 @@ function normalizeConfig(row: Record<string, unknown> | Partial<SiteConfig> | nu
     evento_fecha_texto: asString(raw.evento_fecha_texto, DEFAULT_CONFIG.evento_fecha_texto),
     evento_hora_texto: asString(raw.evento_hora_texto, DEFAULT_CONFIG.evento_hora_texto),
     evento_lugar_texto: asString(raw.evento_lugar_texto, DEFAULT_CONFIG.evento_lugar_texto),
-    cuenta_etiqueta: asFilled(raw.cuenta_etiqueta, DEFAULT_CONFIG.cuenta_etiqueta),
-    cuenta_titulo: asFilled(raw.cuenta_titulo, DEFAULT_CONFIG.cuenta_titulo),
-    cuenta_titulo_fin: asFilled(raw.cuenta_titulo_fin, DEFAULT_CONFIG.cuenta_titulo_fin),
-    mapa_titulo: asFilled(raw.mapa_titulo, DEFAULT_CONFIG.mapa_titulo),
-    mapa_boton: asFilled(raw.mapa_boton, DEFAULT_CONFIG.mapa_boton),
-    video_titulo: asFilled(raw.video_titulo, DEFAULT_CONFIG.video_titulo),
-    rsvp_etiqueta: asFilled(
-      rsvp.packed.rsvp_etiqueta ?? raw.rsvp_etiqueta,
-      DEFAULT_CONFIG.rsvp_etiqueta
+    cuenta_etiqueta: extraFilled(extra, raw, "cuenta_etiqueta", DEFAULT_CONFIG.cuenta_etiqueta),
+    cuenta_titulo: extraFilled(extra, raw, "cuenta_titulo", DEFAULT_CONFIG.cuenta_titulo),
+    cuenta_titulo_fin: extraFilled(
+      extra,
+      raw,
+      "cuenta_titulo_fin",
+      DEFAULT_CONFIG.cuenta_titulo_fin
     ),
-    rsvp_titulo: asFilled(
-      rsvp.packed.rsvp_titulo ?? raw.rsvp_titulo,
-      DEFAULT_CONFIG.rsvp_titulo
-    ),
-    rsvp_boton_abrir: asFilled(
-      rsvp.packed.rsvp_boton_abrir ?? raw.rsvp_boton_abrir,
-      DEFAULT_CONFIG.rsvp_boton_abrir
-    ),
-    rsvp_boton_enviar: asFilled(
-      rsvp.packed.rsvp_boton_enviar ?? raw.rsvp_boton_enviar,
-      DEFAULT_CONFIG.rsvp_boton_enviar
-    ),
-    rsvp_boton_enviando: asFilled(
-      rsvp.packed.rsvp_boton_enviando ?? raw.rsvp_boton_enviando,
+    mapa_titulo: extraFilled(extra, raw, "mapa_titulo", DEFAULT_CONFIG.mapa_titulo),
+    mapa_boton: extraFilled(extra, raw, "mapa_boton", DEFAULT_CONFIG.mapa_boton),
+    video_titulo: extraFilled(extra, raw, "video_titulo", DEFAULT_CONFIG.video_titulo),
+    rsvp_etiqueta: extraFilled(extra, raw, "rsvp_etiqueta", DEFAULT_CONFIG.rsvp_etiqueta),
+    rsvp_titulo: extraFilled(extra, raw, "rsvp_titulo", DEFAULT_CONFIG.rsvp_titulo),
+    rsvp_boton_abrir: extraFilled(extra, raw, "rsvp_boton_abrir", DEFAULT_CONFIG.rsvp_boton_abrir),
+    rsvp_boton_enviar: extraFilled(extra, raw, "rsvp_boton_enviar", DEFAULT_CONFIG.rsvp_boton_enviar),
+    rsvp_boton_enviando: extraFilled(
+      extra,
+      raw,
+      "rsvp_boton_enviando",
       DEFAULT_CONFIG.rsvp_boton_enviando
     ),
-    rsvp_boton_si: asFilled(
-      rsvp.packed.rsvp_boton_si ?? raw.rsvp_boton_si,
-      DEFAULT_CONFIG.rsvp_boton_si
-    ),
-    rsvp_boton_no: asFilled(
-      rsvp.packed.rsvp_boton_no ?? raw.rsvp_boton_no,
-      DEFAULT_CONFIG.rsvp_boton_no
-    ),
-    rsvp_pregunta: asFilled(
-      rsvp.packed.rsvp_pregunta ?? raw.rsvp_pregunta,
-      DEFAULT_CONFIG.rsvp_pregunta
-    ),
-    rsvp_gracias_titulo: asFilled(
-      rsvp.packed.rsvp_gracias_titulo ?? raw.rsvp_gracias_titulo,
+    rsvp_boton_si: extraFilled(extra, raw, "rsvp_boton_si", DEFAULT_CONFIG.rsvp_boton_si),
+    rsvp_boton_no: extraFilled(extra, raw, "rsvp_boton_no", DEFAULT_CONFIG.rsvp_boton_no),
+    rsvp_pregunta: extraFilled(extra, raw, "rsvp_pregunta", DEFAULT_CONFIG.rsvp_pregunta),
+    rsvp_gracias_titulo: extraFilled(
+      extra,
+      raw,
+      "rsvp_gracias_titulo",
       DEFAULT_CONFIG.rsvp_gracias_titulo
     ),
-    rsvp_gracias_texto: asFilled(
-      rsvp.packed.rsvp_gracias_texto ?? raw.rsvp_gracias_texto,
+    rsvp_gracias_texto: extraFilled(
+      extra,
+      raw,
+      "rsvp_gracias_texto",
       DEFAULT_CONFIG.rsvp_gracias_texto
     ),
-    rsvp_label_nombre: asFilled(
-      rsvp.packed.rsvp_label_nombre ?? raw.rsvp_label_nombre,
-      DEFAULT_CONFIG.rsvp_label_nombre
-    ),
-    rsvp_label_apellido: asFilled(
-      rsvp.packed.rsvp_label_apellido ?? raw.rsvp_label_apellido,
+    rsvp_label_nombre: extraFilled(extra, raw, "rsvp_label_nombre", DEFAULT_CONFIG.rsvp_label_nombre),
+    rsvp_label_apellido: extraFilled(
+      extra,
+      raw,
+      "rsvp_label_apellido",
       DEFAULT_CONFIG.rsvp_label_apellido
     ),
-    rsvp_label_cargo: asFilled(
-      rsvp.packed.rsvp_label_cargo ?? raw.rsvp_label_cargo,
-      DEFAULT_CONFIG.rsvp_label_cargo
-    ),
-    rsvp_label_institucion: asFilled(
-      rsvp.packed.rsvp_label_institucion ?? raw.rsvp_label_institucion,
+    rsvp_label_cargo: extraFilled(extra, raw, "rsvp_label_cargo", DEFAULT_CONFIG.rsvp_label_cargo),
+    rsvp_label_institucion: extraFilled(
+      extra,
+      raw,
+      "rsvp_label_institucion",
       DEFAULT_CONFIG.rsvp_label_institucion
     ),
-    rsvp_label_telefono: asFilled(
-      rsvp.packed.rsvp_label_telefono ?? raw.rsvp_label_telefono,
+    rsvp_label_telefono: extraFilled(
+      extra,
+      raw,
+      "rsvp_label_telefono",
       DEFAULT_CONFIG.rsvp_label_telefono
     ),
-    rsvp_label_email: asFilled(
-      rsvp.packed.rsvp_label_email ?? raw.rsvp_label_email,
-      DEFAULT_CONFIG.rsvp_label_email
+    rsvp_label_email: extraFilled(extra, raw, "rsvp_label_email", DEFAULT_CONFIG.rsvp_label_email),
+    evento_label_fecha: extraFilled(
+      extra,
+      raw,
+      "evento_label_fecha",
+      DEFAULT_CONFIG.evento_label_fecha
     ),
-    evento_label_fecha: asFilled(raw.evento_label_fecha, DEFAULT_CONFIG.evento_label_fecha),
-    evento_label_hora: asFilled(raw.evento_label_hora, DEFAULT_CONFIG.evento_label_hora),
-    evento_label_lugar: asFilled(raw.evento_label_lugar, DEFAULT_CONFIG.evento_label_lugar),
+    evento_label_hora: extraFilled(extra, raw, "evento_label_hora", DEFAULT_CONFIG.evento_label_hora),
+    evento_label_lugar: extraFilled(
+      extra,
+      raw,
+      "evento_label_lugar",
+      DEFAULT_CONFIG.evento_label_lugar
+    ),
     cronograma_fondo_url: asString(raw.cronograma_fondo_url, DEFAULT_CONFIG.cronograma_fondo_url),
     cronograma_overlay: asNumber(raw.cronograma_overlay, DEFAULT_CONFIG.cronograma_overlay),
-    cronograma_titulo: asString(raw.cronograma_titulo, DEFAULT_CONFIG.cronograma_titulo),
+    cronograma_titulo: asString(
+      extra.cronograma_titulo ?? raw.cronograma_titulo,
+      DEFAULT_CONFIG.cronograma_titulo
+    ),
     firmas: asArray(raw.firmas, DEFAULT_CONFIG.firmas),
     cronograma: asArray(raw.cronograma, DEFAULT_CONFIG.cronograma),
-    galeria: asArray(rsvp.galeria, DEFAULT_CONFIG.galeria),
+    galeria: asArray(site.galeria, DEFAULT_CONFIG.galeria),
     enlaces: asArray(raw.enlaces, DEFAULT_CONFIG.enlaces),
   };
 }
@@ -220,6 +238,7 @@ export async function getSiteConfig(): Promise<SiteConfig> {
 export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
   const next = normalizeConfig(config);
   const supabase = getSupabaseServerClient();
+  const extras = pickSiteCopy(next);
 
   if (supabase) {
     const payload = {
@@ -238,7 +257,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       mapa_url: next.mapa_url,
       mapa_embed: next.mapa_embed,
       accesos: next.accesos,
-      info_protocolar: next.info_protocolar,
+      info_protocolar: packSiteInfo(next.info_protocolar, extras),
       musica_url: next.musica_url,
       video_url: next.video_url,
       logo_fiesta: next.logo_fiesta,
@@ -287,7 +306,7 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
       cronograma_titulo: next.cronograma_titulo,
       firmas: next.firmas,
       cronograma: next.cronograma,
-      galeria: mergeRsvpMeta(next.galeria, pickRsvpCopy(next)),
+      galeria: mergeSiteMeta(next.galeria, extras),
       enlaces: next.enlaces,
       updated_at: new Date().toISOString(),
     };
@@ -338,10 +357,14 @@ export async function saveSiteConfig(config: SiteConfig): Promise<SiteConfig> {
     }
 
     if (error) throw new Error(error.message);
-    return next;
+    return getSiteConfig();
   }
 
-  await writeJsonFile(CONFIG_FILE, next);
+  await writeJsonFile(CONFIG_FILE, {
+    ...next,
+    galeria: mergeSiteMeta(next.galeria, extras),
+    info_protocolar: packSiteInfo(next.info_protocolar, extras),
+  });
   return next;
 }
 
