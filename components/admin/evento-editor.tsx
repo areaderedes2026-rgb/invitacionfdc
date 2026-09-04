@@ -102,7 +102,7 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             <Input
               id="evento_fecha_texto"
               value={config.evento_fecha_texto}
-              placeholder="Se genera automáticamente"
+              placeholder="Se genera con el inicio, o con inicio y fin"
               onChange={(e) => update("evento_fecha_texto", e.target.value)}
             />
           </div>
@@ -145,8 +145,8 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
         <div className="space-y-5 rounded-2xl border border-ocre/20 bg-white p-6 shadow-sm">
         <h3 className="font-display text-xl tracking-wide">Cuenta regresiva y mapa</h3>
         <p className="text-sm text-sepia">
-          La cuenta regresiva usa la fecha de inicio. El mapa de “Cómo llegar”
-          solo muestra ubicación, el mapa y el botón.
+          La cuenta regresiva usa solo la fecha de inicio. El fin es opcional:
+          si lo dejás vacío, en la invitación aparece únicamente el inicio.
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -165,7 +165,18 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="fecha_fin">Fin del festival</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="fecha_fin">Fin del festival (opcional)</Label>
+              {config.fecha_fin ? (
+                <button
+                  type="button"
+                  className="font-ui text-xs text-ocre underline-offset-4 hover:underline"
+                  onClick={() => update("fecha_fin", "")}
+                >
+                  Quitar
+                </button>
+              ) : null}
+            </div>
             <Input
               id="fecha_fin"
               type="datetime-local"
@@ -177,6 +188,9 @@ export function EventoEditor({ initialConfig }: { initialConfig: SiteConfig }) {
                 )
               }
             />
+            <p className="text-xs text-sepia">
+              Vacío = se muestra solo el inicio.
+            </p>
           </div>
         </div>
 

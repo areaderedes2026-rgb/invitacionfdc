@@ -28,24 +28,25 @@ export function EventInfo({
   }, [imageSrc]);
 
   const facts = useMemo(
-    () => [
-      {
-        label: "Fecha",
-        value:
-          config.evento_fecha_texto?.trim() ||
-          formatEventDateRange(config.fecha_evento, config.fecha_fin),
-      },
-      {
-        label: "Hora",
-        value:
-          config.evento_hora_texto?.trim() || formatEventTime(config.fecha_evento),
-      },
-      {
-        label: "Lugar",
-        value: config.evento_lugar_texto?.trim() || config.ubicacion,
-        detail: config.ubicacion_detalle,
-      },
-    ],
+    () =>
+      [
+        {
+          label: "Fecha",
+          value:
+            config.evento_fecha_texto?.trim() ||
+            formatEventDateRange(config.fecha_evento, config.fecha_fin),
+        },
+        {
+          label: "Hora",
+          value:
+            config.evento_hora_texto?.trim() || formatEventTime(config.fecha_evento),
+        },
+        {
+          label: "Lugar",
+          value: config.evento_lugar_texto?.trim() || config.ubicacion,
+          detail: config.ubicacion_detalle,
+        },
+      ].filter((fact) => Boolean(fact.value)),
     [config]
   );
 

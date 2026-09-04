@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useCountdown } from "@/hooks/use-countdown";
 import { GoldRule } from "@/components/shared/ornament";
+import { isValidDateValue } from "@/lib/utils";
 import type { SiteConfig } from "@/types";
 
 function Unit({ label, value }: { label: string; value: number }) {
@@ -30,6 +31,8 @@ export function Countdown({ config }: { config: SiteConfig }) {
   const { days, hours, minutes, seconds, completed } = useCountdown(
     config.fecha_evento
   );
+
+  if (!isValidDateValue(config.fecha_evento)) return null;
 
   return (
     <section

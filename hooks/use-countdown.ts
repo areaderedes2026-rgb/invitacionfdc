@@ -11,7 +11,12 @@ export interface CountdownValue {
 }
 
 function calculate(target: string): CountdownValue {
-  const diff = new Date(target).getTime() - Date.now();
+  const stamp = new Date(target).getTime();
+  if (!Number.isFinite(stamp)) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, completed: false };
+  }
+
+  const diff = stamp - Date.now();
 
   if (diff <= 0) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0, completed: true };
